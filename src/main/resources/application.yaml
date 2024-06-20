@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${URL_DB}
+    username: ${USER_DB}
+    password: ${PASS_DB}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
+
+server:
+  port: 8080
