@@ -1,5 +1,6 @@
 package com.example.demo.models;
 
+import com.example.demo.models.enums.RulesBreaks;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,6 +14,7 @@ import java.util.Set;
 @Setter
 @Getter
 @EqualsAndHashCode
+@ToString
 public class Person {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +26,7 @@ public class Person {
     private int money;
 
     @Column(name = "rules_breaks")
-    private List<String> rulesBreaks;
+    private List<RulesBreaks> rulesBreaks;
 
     @OneToMany(mappedBy = "person")
     private List<Car> cars;

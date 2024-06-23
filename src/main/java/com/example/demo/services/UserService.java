@@ -27,7 +27,7 @@ public class UserService implements UserDetailsService {
     private UserRepository userRepository;
 
     public boolean saveUser(User user, Map<String, String> roles) {
-        if (roles.isEmpty()){
+        if (roles.isEmpty()) {
             return false;
         }
         Optional<User> userForComparison = userRepository.findByUserName(user.getUsername());

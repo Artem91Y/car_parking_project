@@ -4,6 +4,8 @@ import com.example.demo.models.enums.TypeOfCar;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Set;
+
 @Entity
 @Table(name = "car")
 @AllArgsConstructor
@@ -11,6 +13,7 @@ import lombok.*;
 @Setter
 @Getter
 @EqualsAndHashCode
+@ToString
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,6 +23,11 @@ public class Car {
     private String number;
 
     private TypeOfCar type;
-
+    @ManyToOne
+    @JoinColumn(name = "person_id")
     private Person person;
+
+    @OneToMany(mappedBy = "car")
+    @Column(name = "booking_records")
+    private Set<BookingRecord> bookingRecords;
 }
