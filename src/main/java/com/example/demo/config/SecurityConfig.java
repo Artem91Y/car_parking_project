@@ -22,7 +22,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests((requests) -> {
-                    requests.requestMatchers("sign_in").permitAll();
+                    requests.requestMatchers("signIn").permitAll();
                     requests.requestMatchers("saveParkingPlace", "makeAccount", "deleteParkingPlace**", "updateParkingPlace**", "deleteParkingPlace**").hasAuthority("ADMIN");
                     requests.anyRequest().authenticated();
                 })

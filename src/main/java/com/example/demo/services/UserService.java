@@ -30,14 +30,14 @@ public class UserService implements UserDetailsService {
         if (roles.isEmpty()) {
             return false;
         }
-        Optional<User> userForComparison = userRepository.findByUserName(user.getUsername());
+        Optional<User> userForComparison = userRepository.findByUsername(user.getUsername());
         if (userForComparison.isPresent()) {
             return false;
         }
 
         try {
             User userForSave = new User();
-            userForSave.setUserName(user.getUsername());
+            userForSave.setUsername(user.getUsername());
             userForSave.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
             Set<Role> userRoles = new HashSet<>();
             for (String name : roles.values()) {
@@ -82,7 +82,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<User> user = userRepository.findByUserName(username);
+        Optional<User> user = userRepository.findByUsername(username);
         if (user.isEmpty()) {
             throw new UsernameNotFoundException("User not found");
         }

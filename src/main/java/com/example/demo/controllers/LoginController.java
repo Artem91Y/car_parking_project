@@ -19,7 +19,7 @@ public class LoginController {
         this.userService = userService;
     }
 
-    @GetMapping("/sign_in")
+    @GetMapping("/signIn")
     public boolean addUser(@RequestBody User user, @RequestParam Map<String, String> names) {
         return userService.saveUser(user, names);
     }

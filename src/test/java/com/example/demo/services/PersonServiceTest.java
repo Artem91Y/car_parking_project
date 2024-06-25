@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 
 public class PersonServiceTest {
-    @InjectMocks
+    @Mock
     private PersonService personService;
 
     @Mock
@@ -58,5 +58,18 @@ public class PersonServiceTest {
         assertEquals(response, expected);
     }
 
+
+    @Test
+    public void TestUpdatePersonPositive(){
+        SecurityContext securityContext = mock(SecurityContext.class);
+        SecurityContextHolder.setContext(securityContext);
+        Authentication authentication1 = mock(Authentication.class);
+        when(authentication1.getName()).thenReturn("smith");
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
+        ResponseEntity<String> response = personService.savePerson(new PersonRequest("John", List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null))));
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED)
+                .body("Person is created successfully");
+        assertEquals(response, expected);
+    }
 
 }

@@ -38,7 +38,7 @@ public class ParkingPlaceService {
     }
 
     public ResponseEntity<String> saveParkingPlace(ParkingPlaceRequest parkingPlaceRequest) {
-        if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isEmpty()) {
+        if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isPresent()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("This parking place is already exist");
         }

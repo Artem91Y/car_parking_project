@@ -21,7 +21,7 @@ public class ParkingPlace {
     @Column(unique = true)
     private int number;
 
-    @OneToMany(mappedBy = "parkingPlace")
+    @OneToMany(mappedBy = "parkingPlace", fetch = FetchType.EAGER)
     @Column(name = "booking_records")
     private Set<BookingRecord> bookingRecords;
 

@@ -25,8 +25,8 @@ public class User implements UserDetails {
 
     private String password;
 
-    @Column(name = "user_name", unique = true)
-    private String userName;
+    @Column(name = "username", unique = true)
+    private String username;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
@@ -40,7 +40,7 @@ public class User implements UserDetails {
 
     @Override
     public String getUsername() {
-        return userName;
+        return username;
     }
 
     @Override

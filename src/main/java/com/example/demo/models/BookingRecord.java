@@ -3,8 +3,8 @@ package com.example.demo.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "booking_record")
@@ -33,6 +33,6 @@ public class BookingRecord {
 
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "registration_number")
-    private int registrationNumber;
+    private UUID registrationNumber;
 
 }

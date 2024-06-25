@@ -33,8 +33,8 @@ public class PersonController {
         return personService.savePerson(personRequest);
     }
 
-    @PutMapping("/updatePerson/id")
-    public ResponseEntity<String> updatePerson(@PathVariable Long id, @RequestBody PersonRequest personRequest){
+    @PutMapping("/updatePerson")
+    public ResponseEntity<String> updatePerson(@RequestBody PersonRequest personRequest){
         return personService.updatePerson(personRequest);
     }
 
