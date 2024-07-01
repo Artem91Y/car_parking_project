@@ -28,6 +28,9 @@ public class CarService {
         if (carRequest.getType() == null || carRequest.getNumber().isEmpty()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't full to be created");
         }
+        if (carRepository.findCarByNumber(carRequest.getNumber()).isPresent()){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This car already exists");
+        }
         Car car = new Car();
         car.setType(carRequest.getType());
         car.setNumber(carRequest.getNumber());
@@ -42,9 +45,6 @@ public class CarService {
     public ResponseEntity<String> updateCar(String number, CarRequest carRequest) {
         if (carRepository.findCarByNumber(number).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
-        }
-        if (personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You are not authorized");
         }
         if (!(carRepository.findCarByNumber(number).get().getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()))) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("It's not your car");

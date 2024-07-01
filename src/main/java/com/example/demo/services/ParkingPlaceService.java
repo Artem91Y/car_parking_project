@@ -16,6 +16,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,15 +41,16 @@ public class ParkingPlaceService {
     }
 
     public ResponseEntity<String> saveParkingPlace(ParkingPlaceRequest parkingPlaceRequest) {
+        if (parkingPlaceRequest.getNumber() == null || parkingPlaceRequest.getPricePerHour() == null){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Parking place isn't full to be created");
+        }
         if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isPresent()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("This parking place is already exist");
         }
-        if (parkingPlaceRequest.getPricePerHour() == 0) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This number is already used");
-        }
         ParkingPlace parkingPlace = new ParkingPlace();
         parkingPlace.setNumber(parkingPlaceRequest.getNumber());
+        parkingPlace.setPricePerHour(parkingPlaceRequest.getPricePerHour());
 
         try {
             parkingPlaceRepository.save(parkingPlace);
@@ -58,12 +62,12 @@ public class ParkingPlaceService {
         }
     }
 
-    public ResponseEntity<String> updateParkingPlace(int number, ParkingPlaceRequest parkingPlaceRequest) {
+    public ResponseEntity<String> updateParkingPlace(Integer number, ParkingPlaceRequest parkingPlaceRequest) {
         if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No such parking place");
         }
-        if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isEmpty()) {
+        if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isPresent()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("This parking place is already exist");
         }
@@ -82,41 +86,38 @@ public class ParkingPlaceService {
         }
     }
 
-    public ResponseEntity<ParkingPlace> deleteParkingPlace(int number) {
+    public ResponseEntity<String> deleteParkingPlace(Integer number) {
         if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
         }
         ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(number).get();
         try {
             parkingPlaceRepository.delete(parkingPlace);
-            return ResponseEntity.status(HttpStatus.OK).body(parkingPlace);
+            return ResponseEntity.status(HttpStatus.OK).body(parkingPlace.toString());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Parking place isn't deleted");
         }
     }
 
-    public ResponseEntity<ParkingPlace> getParkingPlace(int number) {
+    public ResponseEntity<String> getParkingPlace(Integer number) {
         try {
             if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
+
             }
             ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(number).get();
-            return ResponseEntity.status(HttpStatus.OK).body(parkingPlace);
+            return ResponseEntity.status(HttpStatus.OK).body(parkingPlace.toString());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
-    public ResponseEntity<String> buyParkingPlace(LocalDateTime startTime, LocalDateTime endTime, String carNumber, int parkingPlaceNumber) {
+    public ResponseEntity<String> buyParkingPlace(String startTime, String endTime, String carNumber, int parkingPlaceNumber) {
         if (parkingPlaceRepository.findByNumber(parkingPlaceNumber).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
         }
         if (carRepository.findCarByNumber(carNumber).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
-        }
-        if (SecurityContextHolder.getContext().getAuthentication().getName().isEmpty()
-                || personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("You are not authorized");
         }
         try {
             Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
@@ -125,18 +126,49 @@ public class ParkingPlaceService {
             BookingRecord bookingRecord = new BookingRecord();
             bookingRecord.setCar(car);
             bookingRecord.setParkingPlace(parkingPlace);
-            bookingRecord.setEndTime(endTime);
-            bookingRecord.setStartTime(startTime);
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+            LocalDateTime startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter);
+            LocalDateTime endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
+            if (parkingPlace.getBookingRecords() != null) {
+                for (BookingRecord bookingRecord2 : parkingPlace.getBookingRecords()) {
+                    if ((startTime2.isAfter(bookingRecord2.getStartTime()) || startTime2.equals(bookingRecord2.getStartTime())) && (startTime2.isBefore(bookingRecord2.getEndTime()) || startTime2.equals(bookingRecord2.getStartTime()))
+                            || (endTime2.isBefore(bookingRecord2.getEndTime())|| endTime2.equals(bookingRecord2.getEndTime()) && endTime2.isAfter(bookingRecord2.getStartTime()) || endTime2.equals(bookingRecord2.getEndTime()))) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This time is already booked");
+                    }
+                }
+            }
+            if (startTime2.isBefore(LocalDateTime.now()) || endTime2.isBefore(LocalDateTime.now())) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
+            }
+            bookingRecord.setEndTime(endTime2);
+            bookingRecord.setStartTime(startTime2);
             Set<BookingRecord> bookingRecordSetParkingPlace = parkingPlace.getBookingRecords();
-            bookingRecordSetParkingPlace.add(bookingRecord);
+            if (bookingRecordSetParkingPlace!=null){
+                bookingRecordSetParkingPlace.add(bookingRecord);
+            } else {
+                bookingRecordSetParkingPlace = Set.of(bookingRecord);
+            }
             Set<BookingRecord> bookingRecordSetCar = car.getBookingRecords();
-            bookingRecordSetCar.add(bookingRecord);
+            if (bookingRecordSetCar != null){
+                bookingRecordSetCar.add(bookingRecord);
+            } else {
+                bookingRecordSetCar = Set.of(bookingRecord);
+            }
             car.setBookingRecords(bookingRecordSetCar);
             parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
-            float dateDiff = (endTime.getYear() - startTime.getYear()) * 365 * 24 + (endTime.getMonth().length(false) - startTime.getMonth().length(false)) * 24 * 12 + (endTime.getHour() - startTime.getHour()) + (endTime.getMinute() - startTime.getMinute()) / 60;
+            ZonedDateTime zoneDateTime = startTime2.atZone(ZoneId.of("Europe/Moscow"));
+            long sec = zoneDateTime.toInstant().toEpochMilli() / 1000;
+            ZonedDateTime zoneDateTime2 = endTime2.atZone(ZoneId.of("Europe/Moscow"));
+            long sec2 = zoneDateTime2.toInstant().toEpochMilli() / 1000;
+            double dateDiff = (double) (sec2 - sec) / 60 / 60.0;
+            if (dateDiff < 0) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave wrong time");
+            }
             if (person.getMoney() < dateDiff * parkingPlace.getPricePerHour()) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
             }
+            System.out.println(dateDiff * parkingPlace.getPricePerHour());
+            System.out.println(parkingPlace);
             person.setMoney(person.getMoney() - (int) (dateDiff * parkingPlace.getPricePerHour()));
             personRepository.save(person);
             carRepository.save(car);

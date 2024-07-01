@@ -12,8 +12,8 @@ import java.util.Set;
 @NoArgsConstructor
 @Setter
 @Getter
-@EqualsAndHashCode
-@ToString
+@EqualsAndHashCode(exclude = {"bookingRecords"})
+@ToString(exclude = {"bookingRecords"})
 public class Car {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

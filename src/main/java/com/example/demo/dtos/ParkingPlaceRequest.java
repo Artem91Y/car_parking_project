@@ -7,7 +7,8 @@ import lombok.*;
 @Setter
 @Getter
 @EqualsAndHashCode
+@ToString
 public class ParkingPlaceRequest {
-    private int number;
-    private int pricePerHour;
+    private Integer number;
+    private Integer pricePerHour;
 }

@@ -10,15 +10,16 @@ import java.util.UUID;
 @Table(name = "booking_record")
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"parkingPlace", "car"})
 @Getter
 @Setter
+@ToString(exclude = {"parkingPlace"})
 public class BookingRecord {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Car car;
 
     @ManyToOne(cascade = CascadeType.ALL)

@@ -6,8 +6,6 @@ import com.example.demo.models.Person;
 import com.example.demo.models.enums.RulesBreaks;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.PersonRepository;
-import org.apache.tomcat.util.digester.Rules;
-import org.hibernate.query.sqm.produce.function.StandardFunctionReturnTypeResolvers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +41,7 @@ public class PersonService {
         person.setFullName(personRequest.getFullName());
         person.setUsername(SecurityContextHolder.getContext().getAuthentication().getName());
         List<Car> cars = new ArrayList<>();
-        for (String number: personRequest.getNumbers()) {
+        for (String number : personRequest.getNumbers()) {
             if (carRepository.findCarByNumber(number).isPresent()) {
                 cars.add(carRepository.findCarByNumber(number).get());
             } else {
@@ -68,7 +66,7 @@ public class PersonService {
         Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
         if (!(personRequest.getNumbers().isEmpty())) {
             List<Car> cars = new ArrayList<>();
-            for (String number: personRequest.getNumbers()) {
+            for (String number : personRequest.getNumbers()) {
                 if (carRepository.findCarByNumber(number).isPresent()) {
                     cars.add(carRepository.findCarByNumber(number).get());
                 } else {
@@ -113,7 +111,7 @@ public class PersonService {
         }
         Person person = personRepository.findByUsername(username).get();
         person.setMoney(money);
-        if (!rulesBreaks.isEmpty()){
+        if (!rulesBreaks.isEmpty()) {
             person.setRulesBreaks(rulesBreaks);
         }
         try {

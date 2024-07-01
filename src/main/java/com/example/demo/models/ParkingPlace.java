@@ -11,7 +11,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Setter
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"bookingRecords"})
 @ToString
 public class ParkingPlace {
     @Id
@@ -19,12 +19,12 @@ public class ParkingPlace {
     private Long id;
 
     @Column(unique = true)
-    private int number;
+    private Integer number;
 
     @OneToMany(mappedBy = "parkingPlace", fetch = FetchType.EAGER)
     @Column(name = "booking_records")
     private Set<BookingRecord> bookingRecords;
 
-    private int pricePerHour;
+    private Integer pricePerHour;
 
 }
