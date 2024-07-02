@@ -12,6 +12,10 @@ target/
 *.iml
 *.ipr
 
+### Docker ###
+docker-compose.yaml
+Dockerfile
+
 ### Eclipse ###
 .apt_generated
 .classpath
