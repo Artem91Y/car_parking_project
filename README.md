@@ -124,6 +124,8 @@ This project is made to manage car parking based on human driver, car and record
 
  #### Delete booking record
   <font color="blue"> url: /deleteBookingRecord </font>
+
+  Attention! Only a half of price is returned
   
  params: registration number(UUID format)
 
@@ -138,7 +140,31 @@ This project is made to manage car parking based on human driver, car and record
  
  request body: none
  
- response: 200/500/400
+ response: 200/500/404
+
+ ### For admin
+
+ #### Create parking place
+ <font color="blue"> url: /saveParkingPlace </font>
+ 
+ request body: number, price per hour
+ 
+ response: 201/500
+
+ #### Make account
+ <font color="blue"> url: /saveParkingPlace?params </font>
+
+ params: money, person's username
+ 
+ request body: list rulesBreaks
+ 
+ response: 201/500/404
+
+
+ ## Contibuters
+ [Artem91Y](#https://github.com/Artem91Y)
+
+ 
  
 
  
