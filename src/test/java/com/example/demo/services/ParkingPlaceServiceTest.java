@@ -224,8 +224,8 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 15:00", "2024-09-05 09:00", "u123ir", 1);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave wrong time");
+        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-009-05 15:00", "2024-09-05 09:00", "u123ir", 1);
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Incorrect format of dates");
         assertEquals(response, expected);
     }
 
@@ -233,7 +233,7 @@ public class ParkingPlaceServiceTest {
     public void TestBuyParkingPlaceNegativeBookedTime() {
         Person person = new Person(1L, "John", 1500, null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), UUID.randomUUID())), 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), UUID.randomUUID(), 0)), 200)));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
@@ -245,17 +245,18 @@ public class ParkingPlaceServiceTest {
     }
 
     @Test
-    public void TestDeleteBookingRecordPositive(){
+    public void TestDeleteBookingRecordPositive() {
         UUID registrationNumber = UUID.randomUUID();
-        when(bookingRecordRepository.deleteByRegistrationNumber(registrationNumber)).thenReturn(Optional.of(new BookingRecord(1L, null, null, null, null, registrationNumber)));
-        when(bookingRecordRepository.findByRegistrationNumber(registrationNumber)).thenReturn(Optional.of(new BookingRecord(1L, null, null, null, null, registrationNumber)));
+        BookingRecord bookingRecord = new BookingRecord(1L, new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Nicolas", 1200, null, null, "smith"), null), null, null, null, registrationNumber, 1200);
+        when(bookingRecordRepository.deleteByRegistrationNumber(registrationNumber)).thenReturn(Optional.of(bookingRecord));
+        when(bookingRecordRepository.findByRegistrationNumber(registrationNumber)).thenReturn(Optional.of(bookingRecord));
         ResponseEntity<BookingRecord> response = parkingPlaceService.deleteBookingRecord(registrationNumber);
-        ResponseEntity<BookingRecord> expected = ResponseEntity.status(HttpStatus.OK).body(new BookingRecord(1L, null, null, null, null, registrationNumber));
+        ResponseEntity<BookingRecord> expected = ResponseEntity.status(HttpStatus.OK).body(new BookingRecord(1L, null, null, null, null, registrationNumber, 1200));
         assertEquals(response, expected);
     }
 
     @Test
-    public void TestDeleteBookingRecordNegativeNoBookingRecord(){
+    public void TestDeleteBookingRecordNegativeNoBookingRecord() {
         UUID registrationNumber = UUID.randomUUID();
         when(bookingRecordRepository.deleteByRegistrationNumber(registrationNumber)).thenReturn(Optional.empty());
         when(bookingRecordRepository.findByRegistrationNumber(registrationNumber)).thenReturn(Optional.empty());
@@ -265,16 +266,16 @@ public class ParkingPlaceServiceTest {
     }
 
     @Test
-    public void TestGetParkingPlacesBookingRecordsPositive(){
+    public void TestGetParkingPlacesBookingRecordsPositive() {
         UUID registrationNumber = UUID.randomUUID();
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), registrationNumber)), 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), registrationNumber, 1200)), 200)));
         ResponseEntity<Set<BookingRecord>> response = parkingPlaceService.getParkingPlacesBookingRecords(1);
-        ResponseEntity<Set<BookingRecord>> expected = ResponseEntity.status(HttpStatus.OK).body(Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), registrationNumber)));
+        ResponseEntity<Set<BookingRecord>> expected = ResponseEntity.status(HttpStatus.OK).body(Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), registrationNumber, 1200)));
         assertEquals(response, expected);
     }
 
     @Test
-    public void TestGetParkingPlacesBookingRecordsNegativeNoParkingPlace(){
+    public void TestGetParkingPlacesBookingRecordsNegativeNoParkingPlace() {
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.empty());
         ResponseEntity<Set<BookingRecord>> response = parkingPlaceService.getParkingPlacesBookingRecords(1);
         ResponseEntity<Set<BookingRecord>> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).build();

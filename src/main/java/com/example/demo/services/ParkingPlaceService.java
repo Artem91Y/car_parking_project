@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -41,7 +42,7 @@ public class ParkingPlaceService {
     }
 
     public ResponseEntity<String> saveParkingPlace(ParkingPlaceRequest parkingPlaceRequest) {
-        if (parkingPlaceRequest.getNumber() == null || parkingPlaceRequest.getPricePerHour() == null){
+        if (parkingPlaceRequest.getNumber() == null || parkingPlaceRequest.getPricePerHour() == null) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Parking place isn't full to be created");
         }
         if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isPresent()) {
@@ -126,50 +127,50 @@ public class ParkingPlaceService {
             BookingRecord bookingRecord = new BookingRecord();
             bookingRecord.setCar(car);
             bookingRecord.setParkingPlace(parkingPlace);
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            LocalDateTime startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter);
-            LocalDateTime endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
+            Duration dateDiff;
+            LocalDateTime startTime2;
+            LocalDateTime endTime2;
+            try {
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter);
+                endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
+                if (startTime2.isBefore(LocalDateTime.now()) || endTime2.isBefore(LocalDateTime.now())) {
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
+                }
+                dateDiff = Duration.between(startTime2, endTime2);
+            } catch (Exception e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Incorrect format of dates");
+            }
             if (parkingPlace.getBookingRecords() != null) {
                 for (BookingRecord bookingRecord2 : parkingPlace.getBookingRecords()) {
                     if ((startTime2.isAfter(bookingRecord2.getStartTime()) || startTime2.equals(bookingRecord2.getStartTime())) && (startTime2.isBefore(bookingRecord2.getEndTime()) || startTime2.equals(bookingRecord2.getStartTime()))
-                            || (endTime2.isBefore(bookingRecord2.getEndTime())|| endTime2.equals(bookingRecord2.getEndTime()) && endTime2.isAfter(bookingRecord2.getStartTime()) || endTime2.equals(bookingRecord2.getEndTime()))) {
+                            || (endTime2.isBefore(bookingRecord2.getEndTime()) || endTime2.equals(bookingRecord2.getEndTime()) && endTime2.isAfter(bookingRecord2.getStartTime()) || endTime2.equals(bookingRecord2.getEndTime()))) {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This time is already booked");
                     }
                 }
             }
-            if (startTime2.isBefore(LocalDateTime.now()) || endTime2.isBefore(LocalDateTime.now())) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
-            }
+
             bookingRecord.setEndTime(endTime2);
             bookingRecord.setStartTime(startTime2);
             Set<BookingRecord> bookingRecordSetParkingPlace = parkingPlace.getBookingRecords();
-            if (bookingRecordSetParkingPlace!=null){
+            if (bookingRecordSetParkingPlace != null) {
                 bookingRecordSetParkingPlace.add(bookingRecord);
             } else {
                 bookingRecordSetParkingPlace = Set.of(bookingRecord);
             }
             Set<BookingRecord> bookingRecordSetCar = car.getBookingRecords();
-            if (bookingRecordSetCar != null){
+            if (bookingRecordSetCar != null) {
                 bookingRecordSetCar.add(bookingRecord);
             } else {
                 bookingRecordSetCar = Set.of(bookingRecord);
             }
-            car.setBookingRecords(bookingRecordSetCar);
-            parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
-            ZonedDateTime zoneDateTime = startTime2.atZone(ZoneId.of("Europe/Moscow"));
-            long sec = zoneDateTime.toInstant().toEpochMilli() / 1000;
-            ZonedDateTime zoneDateTime2 = endTime2.atZone(ZoneId.of("Europe/Moscow"));
-            long sec2 = zoneDateTime2.toInstant().toEpochMilli() / 1000;
-            double dateDiff = (double) (sec2 - sec) / 60 / 60.0;
-            if (dateDiff < 0) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave wrong time");
-            }
-            if (person.getMoney() < dateDiff * parkingPlace.getPricePerHour()) {
+            if (person.getMoney() < dateDiff.toMinutes() / 60.0 * parkingPlace.getPricePerHour()) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
             }
-            System.out.println(dateDiff * parkingPlace.getPricePerHour());
-            System.out.println(parkingPlace);
-            person.setMoney(person.getMoney() - (int) (dateDiff * parkingPlace.getPricePerHour()));
+            bookingRecord.setPrice((int) (dateDiff.toMinutes() / 60.0 * parkingPlace.getPricePerHour()));
+            car.setBookingRecords(bookingRecordSetCar);
+            parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
+            person.setMoney(person.getMoney() - (int) (dateDiff.toMinutes() / 60.0 * parkingPlace.getPricePerHour()));
             personRepository.save(person);
             carRepository.save(car);
             bookingRecordRepository.save(bookingRecord);
@@ -184,6 +185,9 @@ public class ParkingPlaceService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
         try {
+            BookingRecord deletedBookingRecord = bookingRecordRepository.deleteByRegistrationNumber(registrationNumber).get();
+            Person person = deletedBookingRecord.getCar().getPerson();
+            person.setMoney(person.getMoney() + (int) (deletedBookingRecord.getPrice() * 0.5));
             return ResponseEntity.status(HttpStatus.OK).body(bookingRecordRepository.deleteByRegistrationNumber(registrationNumber).get());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

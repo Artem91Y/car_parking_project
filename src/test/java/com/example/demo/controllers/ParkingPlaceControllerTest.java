@@ -277,7 +277,7 @@ public class ParkingPlaceControllerTest {
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestDeleteBookingRecordPositive() throws Exception {
         UUID registrationNumber = UUID.randomUUID();
-        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber);
+        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber, 0);
         ResponseEntity<BookingRecord> response = ResponseEntity.status(HttpStatus.OK).body(bookingRecord);
         when(parkingPlaceService.deleteBookingRecord(registrationNumber)).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.delete("/deleteBookingRecord").param("registrationNumber", registrationNumber.toString()))
@@ -313,7 +313,7 @@ public class ParkingPlaceControllerTest {
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestGetParkingPlaceBookingRecordPositive() throws Exception {
         UUID registrationNumber = UUID.randomUUID();
-        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber);
+        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber, 0);
         ResponseEntity<Set<BookingRecord>> response = ResponseEntity.status(HttpStatus.OK).body(Set.of(bookingRecord));
         when(parkingPlaceService.getParkingPlacesBookingRecords(1)).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.get("/getParkingPlacesBookingRecords/1"))

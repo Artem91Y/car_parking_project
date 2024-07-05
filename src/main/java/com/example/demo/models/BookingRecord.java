@@ -36,4 +36,6 @@ public class BookingRecord {
     @Column(name = "registration_number")
     private UUID registrationNumber;
 
+    private int price;
+
 }
