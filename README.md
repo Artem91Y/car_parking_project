@@ -93,28 +93,28 @@ This project is made to manage car parking based on human driver, car and record
 ### For users
 
 #### sigh in
- <font color="red"> url: /sighIn?your_role </font>
+ <font color="blue"> url: /sighIn?your_role </font>
  
  request body: password, username
  
  response: true/false
 
  #### Create car
- <font color="red"> url: /saveCar </font>
+ <font color="blue"> url: /saveCar </font>
  
  request body: number, type
  
  response: 201/500
 
  #### Create person
- <font color="red"> url: /savePerson </font>
+ <font color="blue"> url: /savePerson </font>
  
  request body: numbers, fullName
  
  response: 201/500
 
  #### Buy parking place
- <font color="red"> url: /buyParkingPlace/{parking place number}?params </font>
+ <font color="blue"> url: /buyParkingPlace/{parking place number}?params </font>
  
  params: car number, startTime, endTime
  
@@ -123,7 +123,7 @@ This project is made to manage car parking based on human driver, car and record
  response: 200/500
 
  #### Delete booking record
-  <font color="red"> url: /deleteBookingRecord </font>
+  <font color="blue"> url: /deleteBookingRecord </font>
   
  params: registration number(UUID format)
 
@@ -132,7 +132,7 @@ This project is made to manage car parking based on human driver, car and record
  response: 200/500/400
 
  #### Get car's booking records
- <font color="red"> url: /getCarsBookingRecord </font>
+ <font color="blue"> url: /getCarsBookingRecord </font>
  
  params: registration number(UUID format)
  

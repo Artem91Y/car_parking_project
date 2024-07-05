@@ -2,10 +2,14 @@ package com.example.demo.controllers;
 
 import com.example.demo.dtos.CarRequest;
 import com.example.demo.dtos.PersonRequest;
+import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
 import com.example.demo.services.CarService;
+import org.hibernate.type.SerializableType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Set;
 
 @RestController
 public class CarController {
@@ -28,6 +32,11 @@ public class CarController {
     @GetMapping("/getCar")
     public ResponseEntity<Car> getCar(@RequestParam String number){
         return carService.getCar(number);
+    }
+
+    @GetMapping("/getCarsBookingRecord")
+    public ResponseEntity<Set<BookingRecord>> getCarsBookingRecords(@RequestParam String number){
+        return carService.getCarsBookingRecords(number);
     }
 
     @DeleteMapping("/deleteCar")

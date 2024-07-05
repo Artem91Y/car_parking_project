@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.dtos.CarRequest;
+import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.PersonRepository;
@@ -10,7 +11,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.awt.*;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class CarService {
@@ -90,6 +93,21 @@ public class CarService {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
             return ResponseEntity.status(HttpStatus.OK).body(carOptional.get());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    public ResponseEntity<Set<BookingRecord>> getCarsBookingRecords(String number) {
+        try {
+            Optional<Car> carOptional = carRepository.findCarByNumber(number);
+            if (carOptional.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            if (!(carRepository.findCarByNumber(number).get().getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()))) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(carOptional.get().getBookingRecords());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
