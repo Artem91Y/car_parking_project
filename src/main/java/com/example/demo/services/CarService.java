@@ -10,13 +10,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import utils.CheckTheOwnerOfTheCar;
 
-import java.awt.*;
 import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class CarService {
+
     @Autowired
     private final CarRepository carRepository;
     @Autowired
@@ -31,7 +32,7 @@ public class CarService {
         if (carRequest.getType() == null || carRequest.getNumber().isEmpty()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't full to be created");
         }
-        if (carRepository.findCarByNumber(carRequest.getNumber()).isPresent()){
+        if (carRepository.findCarByNumber(carRequest.getNumber()).isPresent()) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This car already exists");
         }
         Car car = new Car();
@@ -49,7 +50,7 @@ public class CarService {
         if (carRepository.findCarByNumber(number).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
         }
-        if (!(carRepository.findCarByNumber(number).get().getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()))) {
+        if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carRepository.findCarByNumber(number).get(), personRepository)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("It's not your car");
         }
         Car car = carRepository.findCarByNumber(number).get();
@@ -72,7 +73,7 @@ public class CarService {
         if (carOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        if (!(carOptional.get().getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()))) {
+        if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)){
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
         try {
@@ -89,7 +90,7 @@ public class CarService {
             if (carOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            if (!(carRepository.findCarByNumber(number).get().getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()))) {
+            if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
             return ResponseEntity.status(HttpStatus.OK).body(carOptional.get());
@@ -104,7 +105,7 @@ public class CarService {
             if (carOptional.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            if (!(carRepository.findCarByNumber(number).get().getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get()))) {
+            if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
             }
             return ResponseEntity.status(HttpStatus.OK).body(carOptional.get().getBookingRecords());

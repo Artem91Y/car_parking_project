@@ -14,11 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import utils.CheckIfTimeIsBooked;
+import utils.CountDatesDifference;
+import utils.CountMoney;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.UUID;
@@ -33,6 +33,8 @@ public class ParkingPlaceService {
     private final BookingRecordRepository bookingRecordRepository;
     @Autowired
     private final CarRepository carRepository;
+
+    private final double ratioOfTax = 0.5;
 
     public ParkingPlaceService(ParkingPlaceRepository parkingPlaceRepository, PersonRepository personRepository, BookingRecordRepository bookingRecordRepository, CarRepository carRepository) {
         this.parkingPlaceRepository = parkingPlaceRepository;
@@ -72,7 +74,7 @@ public class ParkingPlaceService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("This parking place is already exist");
         }
-        ParkingPlace parkingPlace = new ParkingPlace();
+        ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(number).get();
         parkingPlace.setNumber(parkingPlaceRequest.getNumber());
         if (parkingPlaceRequest.getPricePerHour() != 0) {
             parkingPlace.setPricePerHour(parkingPlaceRequest.getPricePerHour());
@@ -127,32 +129,29 @@ public class ParkingPlaceService {
             BookingRecord bookingRecord = new BookingRecord();
             bookingRecord.setCar(car);
             bookingRecord.setParkingPlace(parkingPlace);
-            Duration dateDiff;
+            Duration dateDiff = null;
             LocalDateTime startTime2;
             LocalDateTime endTime2;
             try {
                 DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                 startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter);
                 endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
-                dateDiff = Duration.between(startTime2, endTime2);
-                if (startTime2.isBefore(LocalDateTime.now()) || endTime2.isBefore(LocalDateTime.now())) {
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
-                }
-                if (dateDiff.isNegative()){
-                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave start time after end time");
+                try {
+                    dateDiff = CountDatesDifference.countDateDiffFromStrings(startTime2, endTime2);
+                } catch (DateTimeException e) {
+                    if (e.getMessage().equals("Past time")) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Past time");
+                    }
+                    if (e.getMessage().equals("Wrong dates")) {
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Wrong dates");
+                    }
                 }
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Incorrect format of dates");
             }
-            if (parkingPlace.getBookingRecords() != null) {
-                for (BookingRecord bookingRecord2 : parkingPlace.getBookingRecords()) {
-                    if ((startTime2.isAfter(bookingRecord2.getStartTime()) || startTime2.equals(bookingRecord2.getStartTime())) && (startTime2.isBefore(bookingRecord2.getEndTime()) || startTime2.equals(bookingRecord2.getStartTime()))
-                            || (endTime2.isBefore(bookingRecord2.getEndTime()) || endTime2.equals(bookingRecord2.getEndTime()) && endTime2.isAfter(bookingRecord2.getStartTime()) || endTime2.equals(bookingRecord2.getEndTime()))) {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This time is already booked");
-                    }
-                }
+            if (CheckIfTimeIsBooked.checkIfTimeIsBooked(parkingPlace, startTime2, endTime2)) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This time is already booked");
             }
-
             bookingRecord.setEndTime(endTime2);
             bookingRecord.setStartTime(startTime2);
             Set<BookingRecord> bookingRecordSetParkingPlace = parkingPlace.getBookingRecords();
@@ -167,13 +166,9 @@ public class ParkingPlaceService {
             } else {
                 bookingRecordSetCar = Set.of(bookingRecord);
             }
-            if (person.getMoney() < dateDiff.toMinutes() / 60.0 * parkingPlace.getPricePerHour()) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
-            }
-            bookingRecord.setPrice((int) (dateDiff.toMinutes() / 60.0 * parkingPlace.getPricePerHour()));
+            CountMoney.writeOffMoney(dateDiff, person, parkingPlace, bookingRecord);
             car.setBookingRecords(bookingRecordSetCar);
             parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
-            person.setMoney(person.getMoney() - (int) (dateDiff.toMinutes() / 60.0 * parkingPlace.getPricePerHour()));
             personRepository.save(person);
             carRepository.save(car);
             bookingRecordRepository.save(bookingRecord);
@@ -190,7 +185,7 @@ public class ParkingPlaceService {
         try {
             BookingRecord deletedBookingRecord = bookingRecordRepository.deleteByRegistrationNumber(registrationNumber).get();
             Person person = deletedBookingRecord.getCar().getPerson();
-            person.setMoney(person.getMoney() + (int) (deletedBookingRecord.getPrice() * 0.5));
+            person.setMoney(person.getMoney() + (int) (deletedBookingRecord.getPrice() * ratioOfTax));
             return ResponseEntity.status(HttpStatus.OK).body(bookingRecordRepository.deleteByRegistrationNumber(registrationNumber).get());
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
