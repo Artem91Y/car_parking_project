@@ -134,10 +134,13 @@ public class ParkingPlaceService {
                 DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                 startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter);
                 endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
+                dateDiff = Duration.between(startTime2, endTime2);
                 if (startTime2.isBefore(LocalDateTime.now()) || endTime2.isBefore(LocalDateTime.now())) {
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
                 }
-                dateDiff = Duration.between(startTime2, endTime2);
+                if (dateDiff.isNegative()){
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave start time after end time");
+                }
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Incorrect format of dates");
             }

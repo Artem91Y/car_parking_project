@@ -8,9 +8,9 @@ spring:
     hibernate:
       ddl-auto: update
 
-#    properties:jdbc:mysql://localhost:3306/car_parking?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true
-#      hibernate:
-#        dialect: org.hibernate.dialect.MySQL8Dialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
 server:
   port: 8080
