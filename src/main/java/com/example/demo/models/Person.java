@@ -1,15 +1,10 @@
 package com.example.demo.models;
 
 import com.example.demo.models.enums.RulesBreaks;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.deser.std.EnumDeserializer;
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "person")
@@ -37,6 +32,4 @@ public class Person {
 
     @Column(unique = true)
     private String username;
-
-//    w1606	s1828
 }
