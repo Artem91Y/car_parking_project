@@ -63,7 +63,7 @@ public class ParkingPlaceService {
         }
     }
 
-    public ResponseEntity<String> updateParkingPlace(Integer number, ParkingPlaceRequest parkingPlaceRequest) {
+    public ResponseEntity<String> updateParkingPlace(int number, ParkingPlaceRequest parkingPlaceRequest) {
         if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body("No such parking place");
@@ -87,7 +87,7 @@ public class ParkingPlaceService {
         }
     }
 
-    public ResponseEntity<String> deleteParkingPlace(Integer number) {
+    public ResponseEntity<String> deleteParkingPlace(int number) {
         if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
         }
@@ -100,7 +100,7 @@ public class ParkingPlaceService {
         }
     }
 
-    public ResponseEntity<String> getParkingPlace(Integer number) {
+    public ResponseEntity<String> getParkingPlace(int number) {
         try {
             if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
