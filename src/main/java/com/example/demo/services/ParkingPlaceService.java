@@ -140,11 +140,12 @@ public class ParkingPlaceService {
                     dateDiff = CountDatesDifference.countDateDiffFromStrings(startTime2, endTime2);
                 } catch (DateTimeException e) {
                     if (e.getMessage().equals("Past time")) {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Past time");
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
                     }
                     if (e.getMessage().equals("Wrong dates")) {
                         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Wrong dates");
                     }
+
                 }
             } catch (Exception e) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Incorrect format of dates");
@@ -166,7 +167,11 @@ public class ParkingPlaceService {
             } else {
                 bookingRecordSetCar = Set.of(bookingRecord);
             }
-            CountMoney.writeOffMoney(dateDiff, person, parkingPlace, bookingRecord);
+            try {
+                CountMoney.writeOffMoney(dateDiff, person, parkingPlace, bookingRecord);
+            } catch (Exception e){
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
+            }
             car.setBookingRecords(bookingRecordSetCar);
             parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
             personRepository.save(person);

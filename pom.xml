@@ -12,9 +12,9 @@
     </parent>
     <groupId>com.github.Artem91Y</groupId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>newVersionOfCarParkingProject</name>
+    <name>CarParking2</name>
     <description>car parking project</description>
-    <artifactId>newVersionOfCarParkingProject</artifactId>
+    <artifactId>CarParking2</artifactId>
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
