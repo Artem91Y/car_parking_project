@@ -14,9 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import utils.CheckIfTimeIsBooked;
-import utils.CountDatesDifference;
-import utils.CountMoney;
+import com.example.demo.utils.CheckIfTimeIsBooked;
+import com.example.demo.utils.CountDatesDifference;
+import com.example.demo.utils.CountMoney;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;

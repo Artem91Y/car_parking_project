@@ -23,7 +23,7 @@ public class SecurityConfig {
 
         httpSecurity.csrf(AbstractHttpConfigurer::disable).authorizeHttpRequests((requests) -> {
                     requests.requestMatchers("signIn").permitAll();
-                    requests.requestMatchers("saveParkingPlace", "makeAccount", "deleteParkingPlace**", "updateParkingPlace**", "deleteParkingPlace**").hasAuthority("ADMIN");
+                    requests.requestMatchers("saveParkingPlace", "makeAccount", "deleteParkingPlace**", "updateParkingPlace**").hasAuthority("ADMIN");
                     requests.anyRequest().authenticated();
                 })
                 .httpBasic(withDefaults())

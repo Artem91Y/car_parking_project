@@ -8,9 +8,8 @@ import com.example.demo.repos.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import utils.CheckTheOwnerOfTheCar;
+import com.example.demo.utils.CheckTheOwnerOfTheCar;
 
 import java.util.Optional;
 import java.util.Set;

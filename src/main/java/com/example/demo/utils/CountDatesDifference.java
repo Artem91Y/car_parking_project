@@ -1,4 +1,4 @@
-package utils;
+package com.example.demo.utils;
 
 import java.time.DateTimeException;
 import java.time.Duration;
