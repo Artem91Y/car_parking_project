@@ -34,7 +34,7 @@ public class ApiConnection {
         OkHttpClient okHttpClient = new OkHttpClient();
         String json;
         try {
-            json = objectMapper1.writeValueAsString(new PaymentRequest(new Amount(money, currency)));
+            json = objectMapper1.writeValueAsString(new PaymentRequest(new Amount(money, currency), new PaymentRequestMethod(new CardRequest("5105105105105100", 2029, 12)), new ConfirmationRequest()));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -43,7 +43,7 @@ public class ApiConnection {
                 .post(RequestBody.create(MediaType.parse("APPLICATION/JSON"), json))
                 .url(baseUrl + "payments")
                 .addHeader("Authorization", Credentials.basic(shopID, secretKey))
-                .addHeader("Idempotence-Key", "unique-key-12345")
+                .addHeader("Idempotence-Key", "unique-key-12379")
                 .build();
         try {
             response = okHttpClient.newCall(request).execute();
@@ -51,6 +51,7 @@ public class ApiConnection {
             throw new RuntimeException(e);
         }
         try {
+            System.out.println(response.body().string());
             return objectMapper1.readValue(response.body().string(), Payment.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
