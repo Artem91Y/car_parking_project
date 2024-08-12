@@ -16,29 +16,29 @@ import java.util.Set;
 
 @SpringBootApplication
 public class DemoApplication {
-		public static void main(String[] args) {
-			SpringApplication.run(DemoApplication.class, args);
-		}
-		@Bean
-		CommandLineRunner run(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, PersonRepository personRepository){
+    public static void main(String[] args) {
+        SpringApplication.run(DemoApplication.class, args);
+    }
 
-			return args -> {
-				if (roleRepository.findByAuthority("USER").isEmpty()){
-					roleRepository.save(new Role("USER"));
-				}
-				if (roleRepository.findByAuthority("ADMIN").isPresent()) return;
-				Role adminRole = roleRepository.save(new Role("ADMIN"));
+    @Bean
+    CommandLineRunner run(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder, PersonRepository personRepository) {
+
+        return args -> {
+            if (roleRepository.findByAuthority("USER").isEmpty()) {
+                roleRepository.save(new Role("USER"));
+            }
+            if (roleRepository.findByAuthority("ADMIN").isPresent()) return;
+            Role adminRole = roleRepository.save(new Role("ADMIN"));
 
 
-				Set<Role> roles = new HashSet<>();
-				roles.add(adminRole);
+            Set<Role> roles = new HashSet<>();
+            roles.add(adminRole);
 
-				User admin = new User(1L, passwordEncoder.encode("password"), "admin", roles);
+            User admin = new User(1L, passwordEncoder.encode("password"), "admin", roles);
 
-				userRepository.save(admin);
-			};
-		}
-
+            userRepository.save(admin);
+        };
+    }
 
 
 }

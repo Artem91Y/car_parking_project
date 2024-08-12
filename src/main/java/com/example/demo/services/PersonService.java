@@ -6,7 +6,6 @@ import com.example.demo.models.Person;
 import com.example.demo.models.enums.RulesBreaks;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.PersonRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,10 +16,7 @@ import java.util.List;
 
 @Service
 public class PersonService {
-    @Autowired
     private final PersonRepository personRepository;
-
-    @Autowired
     private final CarRepository carRepository;
 
     public PersonService(PersonRepository personRepository, CarRepository carRepository) {

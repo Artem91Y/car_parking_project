@@ -1,16 +1,15 @@
 package com.example.demo.utils;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.example.demo.utils.models.Amount;
+import com.example.demo.utils.models.CardRequest;
+import com.example.demo.utils.models.ConfirmationRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.squareup.okhttp.Response;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
 
 public class ApiConnectionTest {
     @InjectMocks
@@ -25,8 +24,9 @@ public class ApiConnectionTest {
     }
 
     @Test
-    public void testCreatePaymentPositive(){
-        Payment payment = apiConnection.createPayment(111, "RUB");
-        System.out.println(payment);
+    public void testCreatePaymentPositive() throws Exception {
+        boolean result = false;
+        result = apiConnection.createPayment(new PaymentRequest(new Amount(112, "RUB"), new PaymentRequestMethod(new CardRequest("5555555555554444", 2029, "12")), new ConfirmationRequest(), true));
+        System.out.println(result);
     }
 }

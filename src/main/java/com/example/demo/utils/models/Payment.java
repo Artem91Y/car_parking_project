@@ -1,9 +1,7 @@
-package com.example.demo.utils;
+package com.example.demo.utils.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,6 +11,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
+@NoArgsConstructor
+@ToString
+@Builder
 public class Payment {
 
     public Payment(UUID id, StatusOfPayment status, Amount incomeAmount, Recipient recipient, LocalDateTime createdAt, boolean test, boolean refundable, boolean paid) {
@@ -77,6 +78,8 @@ public class Payment {
 
     @JsonProperty("merchant_customer_id")
     private String merchantCustomerId;
+
+
 }
 
 @AllArgsConstructor

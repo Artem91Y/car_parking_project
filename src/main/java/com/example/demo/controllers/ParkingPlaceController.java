@@ -3,7 +3,8 @@ package com.example.demo.controllers;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.services.ParkingPlaceService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.utils.PaymentRequest;
+import com.example.demo.utils.models.CardRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +13,6 @@ import java.util.UUID;
 
 @RestController
 public class ParkingPlaceController {
-    @Autowired
     private final ParkingPlaceService parkingPlaceService;
 
 
@@ -40,8 +40,9 @@ public class ParkingPlaceController {
     public ResponseEntity<String> buyParkingPlace(@PathVariable int parkingPlaceNumber,
                                                   @RequestParam String carNumber,
                                                   @RequestParam String startTime,
-                                                  @RequestParam String endTime) {
-        return parkingPlaceService.buyParkingPlace(startTime, endTime, carNumber, parkingPlaceNumber);
+                                                  @RequestParam String endTime,
+                                                  @RequestBody CardRequest cardRequest) {
+        return parkingPlaceService.buyParkingPlace(startTime, endTime, carNumber, parkingPlaceNumber, cardRequest);
     }
 
     @GetMapping("/getParkingPlace/{number}")

@@ -5,11 +5,10 @@ import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.PersonRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.utils.CheckTheOwnerOfTheCar;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import com.example.demo.utils.CheckTheOwnerOfTheCar;
 
 import java.util.Optional;
 import java.util.Set;
@@ -17,9 +16,7 @@ import java.util.Set;
 @Service
 public class CarService {
 
-    @Autowired
     private final CarRepository carRepository;
-    @Autowired
     private final PersonRepository personRepository;
 
     public CarService(CarRepository carRepository, PersonRepository personRepository) {
@@ -72,7 +69,7 @@ public class CarService {
         if (carOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)){
+        if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
         try {

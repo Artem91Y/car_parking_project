@@ -1,5 +1,6 @@
-package com.example.demo.utils;
+package com.example.demo.utils.models;
 
+import com.example.demo.utils.models.Card;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

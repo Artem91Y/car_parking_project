@@ -1,5 +1,8 @@
 package com.example.demo.services;
 
+import com.example.demo.dtos.ApiKassaConnectionException;
+import com.example.demo.dtos.CancellationPaymentException;
+import com.example.demo.dtos.CaptureFailedException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
@@ -9,35 +12,34 @@ import com.example.demo.repos.BookingRecordRepository;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.ParkingPlaceRepository;
 import com.example.demo.repos.PersonRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.demo.utils.*;
+import com.example.demo.utils.models.Amount;
+import com.example.demo.utils.models.CardRequest;
+import com.example.demo.utils.models.ConfirmationRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import com.example.demo.utils.CheckIfTimeIsBooked;
-import com.example.demo.utils.CountDatesDifference;
-import com.example.demo.utils.CountMoney;
 
-import java.time.*;
+import java.time.DateTimeException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class ParkingPlaceService {
-    @Autowired
     private final ParkingPlaceRepository parkingPlaceRepository;
-    @Autowired
+    private final ApiConnection apiConnection;
     private final PersonRepository personRepository;
-    @Autowired
     private final BookingRecordRepository bookingRecordRepository;
-    @Autowired
     private final CarRepository carRepository;
-
     private final double ratioOfTax = 0.5;
 
-    public ParkingPlaceService(ParkingPlaceRepository parkingPlaceRepository, PersonRepository personRepository, BookingRecordRepository bookingRecordRepository, CarRepository carRepository) {
+    public ParkingPlaceService(ParkingPlaceRepository parkingPlaceRepository, ApiConnection apiConnection, PersonRepository personRepository, BookingRecordRepository bookingRecordRepository, CarRepository carRepository) {
         this.parkingPlaceRepository = parkingPlaceRepository;
+        this.apiConnection = apiConnection;
         this.personRepository = personRepository;
         this.bookingRecordRepository = bookingRecordRepository;
         this.carRepository = carRepository;
@@ -115,7 +117,11 @@ public class ParkingPlaceService {
         }
     }
 
-    public ResponseEntity<String> buyParkingPlace(String startTime, String endTime, String carNumber, int parkingPlaceNumber) {
+    public ResponseEntity<String> buyParkingPlace(String startTime,
+                                                  String endTime,
+                                                  String carNumber,
+                                                  int parkingPlaceNumber,
+                                                  CardRequest cardRequest) {
         if (parkingPlaceRepository.findByNumber(parkingPlaceNumber).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
         }
@@ -167,10 +173,19 @@ public class ParkingPlaceService {
             } else {
                 bookingRecordSetCar = Set.of(bookingRecord);
             }
+            int price = CountMoney.countPrice(dateDiff, person, parkingPlace, bookingRecord);
             try {
-                CountMoney.writeOffMoney(dateDiff, person, parkingPlace, bookingRecord);
-            } catch (Exception e){
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
+                PaymentRequest paymentRequest = PaymentRequest
+                        .builder()
+                        .amount(new Amount(price, "RUB"))
+                        .refundable(true)
+                        .confirmation(new ConfirmationRequest())
+                        .paymentMethod(new PaymentRequestMethod(cardRequest))
+                        .build();
+                System.out.println(paymentRequest);
+                apiConnection.createPayment(paymentRequest);
+            } catch (CaptureFailedException | CancellationPaymentException | ApiKassaConnectionException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
             }
             car.setBookingRecords(bookingRecordSetCar);
             parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);

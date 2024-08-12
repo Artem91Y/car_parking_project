@@ -1,4 +1,4 @@
-package com.example.demo.utils;
+package com.example.demo.utils.models;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
