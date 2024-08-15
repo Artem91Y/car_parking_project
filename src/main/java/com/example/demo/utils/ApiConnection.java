@@ -3,6 +3,9 @@ package com.example.demo.utils;
 import com.example.demo.dtos.ApiKassaConnectionException;
 import com.example.demo.dtos.CancellationPaymentException;
 import com.example.demo.dtos.CaptureFailedException;
+import com.example.demo.dtos.FailRefundPaymentException;
+import com.example.demo.utils.models.Amount;
+import com.example.demo.utils.models.RefundDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +20,7 @@ import java.util.UUID;
 
 @Component
 public class ApiConnection {
+
 
     private URL baseUrl;
 
@@ -35,7 +39,7 @@ public class ApiConnection {
         }
     }
 
-    public boolean createPayment(PaymentRequest paymentRequest) throws CaptureFailedException, CancellationPaymentException, ApiKassaConnectionException {
+    public UUID createPayment(PaymentRequest paymentRequest) throws CaptureFailedException, CancellationPaymentException, ApiKassaConnectionException {
         ObjectMapper objectMapper1 = new ObjectMapper();
         System.out.println(paymentRequest);
         Response response;
@@ -44,7 +48,7 @@ public class ApiConnection {
         try {
             json = objectMapper1.writeValueAsString(paymentRequest);
         } catch (JsonProcessingException e) {
-            return false;
+            return null;
         }
         System.out.println(json);
         Request request = new Request.Builder()
@@ -58,8 +62,7 @@ public class ApiConnection {
         } catch (IOException e) {
             throw new ApiKassaConnectionException("Connect fail");
         }
-        validation(response);
-        return true;
+        return validation(response);
 
     }
 
@@ -77,7 +80,7 @@ public class ApiConnection {
         System.out.println(response.body().string());
     }
 
-    private void validation(Response response) throws CancellationPaymentException, CaptureFailedException {
+    private UUID validation(Response response) throws CancellationPaymentException, CaptureFailedException {
         JsonNode node = null;
         String response1 = null;
         try {
@@ -108,6 +111,32 @@ public class ApiConnection {
             capturePayment(paymentId);
         } catch (IOException e) {
             throw new CaptureFailedException("Capture failed");
+        }
+        return paymentId;
+    }
+
+    public  void refund(UUID paymentId, int refundPrice) throws FailRefundPaymentException {
+        ObjectMapper objectMapper1 = new ObjectMapper();
+        OkHttpClient okHttpClient = new OkHttpClient();
+        Response response;
+        String json = null;
+        try {
+            json = objectMapper1.writeValueAsString(new RefundDto(new Amount(refundPrice, "RUB"), paymentId));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(json);
+        Request request = new Request.Builder()
+                .post(RequestBody.create(MediaType.parse("APPLICATION/JSON"), json))
+                .url(baseUrl + "refunds")
+                .addHeader("Authorization", Credentials.basic(shopID, secretKey))
+                .addHeader("Idempotence-Key", UUID.randomUUID().toString())
+                .build();
+        try {
+            response = okHttpClient.newCall(request).execute();
+            System.out.println(response.body().string());
+        } catch (IOException e) {
+            throw new FailRefundPaymentException(e.getMessage());
         }
     }
 }

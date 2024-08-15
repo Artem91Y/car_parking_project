@@ -38,7 +38,7 @@ public class PersonController {
     }
 
     @PutMapping("/makeAccount")
-    public ResponseEntity<String> makeAccount(@RequestParam String username, @RequestParam int money, @RequestBody List<RulesBreaks> rulesBreaks) {
-        return personService.makeAccount(username, money, rulesBreaks);
+    public ResponseEntity<String> makeAccount(@RequestParam String username, @RequestBody List<RulesBreaks> rulesBreaks) {
+        return personService.addRulesBreaks(username, rulesBreaks);
     }
 }

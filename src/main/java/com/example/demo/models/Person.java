@@ -1,6 +1,7 @@
 package com.example.demo.models;
 
 import com.example.demo.models.enums.RulesBreaks;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -22,11 +23,10 @@ public class Person {
     @Column(name = "full_name", unique = true)
     private String fullName;
 
-    private int money;
-
     @Column(name = "rules_breaks")
     private List<RulesBreaks> rulesBreaks;
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "person")
     private List<Car> cars;
 

@@ -1,5 +1,7 @@
 package com.example.demo.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,10 +21,12 @@ public class BookingRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @JsonManagedReference
+    @ManyToOne(fetch = FetchType.EAGER)
     private Car car;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @JsonManagedReference
+    @ManyToOne
     @JoinColumn(name = "parking_place")
     private ParkingPlace parkingPlace;
 
@@ -38,4 +42,6 @@ public class BookingRecord {
 
     private int price;
 
+    @Column(name = "payment_id")
+    private UUID paymentId;
 }

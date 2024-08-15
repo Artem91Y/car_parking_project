@@ -39,7 +39,9 @@ public class PersonService {
         List<Car> cars = new ArrayList<>();
         for (String number : personRequest.getNumbers()) {
             if (carRepository.findCarByNumber(number).isPresent()) {
-                cars.add(carRepository.findCarByNumber(number).get());
+                Car car = carRepository.findCarByNumber(number).get();
+                car.setPerson(person);
+                cars.add(car);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
             }
@@ -47,6 +49,7 @@ public class PersonService {
         person.setCars(cars);
         try {
             personRepository.save(person);
+            carRepository.saveAll(cars);
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body("Person is created successfully");
         } catch (Exception e) {
@@ -101,12 +104,11 @@ public class PersonService {
         }
     }
 
-    public ResponseEntity<String> makeAccount(String username, int money, List<RulesBreaks> rulesBreaks) {
+    public ResponseEntity<String> addRulesBreaks(String username, List<RulesBreaks> rulesBreaks) {
         if (personRepository.findByUsername(username).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
         }
         Person person = personRepository.findByUsername(username).get();
-        person.setMoney(money);
         if (!rulesBreaks.isEmpty()) {
             person.setRulesBreaks(rulesBreaks);
         }

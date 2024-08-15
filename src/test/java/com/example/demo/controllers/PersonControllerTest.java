@@ -75,6 +75,7 @@ public class PersonControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.content().string("Person isn't created"));
     }
+
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestSavePersonNegativeNoCar() throws Exception {
@@ -141,7 +142,7 @@ public class PersonControllerTest {
     @Test
     @WithMockUser(username = "smith", password = "123", authorities = {"USER"})
     public void TestDeletePersonPositive() throws Exception {
-        Person person = new Person(1L, "Nicolas", 1, List.of(RulesBreaks.WRONG_PARKING), List.of(new Car()), "smith");
+        Person person = new Person(1L, "Nicolas", List.of(RulesBreaks.WRONG_PARKING), List.of(new Car()), "smith");
         ResponseEntity<Person> response = ResponseEntity.status(HttpStatus.OK).body(person);
         when(personService.deletePerson()).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.delete("/deletePerson"))
@@ -162,7 +163,7 @@ public class PersonControllerTest {
     @Test
     @WithMockUser(username = "smith", password = "123", authorities = {"USER"})
     public void TestGetPersonPositive() throws Exception {
-        Person person = new Person(1L, "Nicolas", 1, List.of(RulesBreaks.WRONG_PARKING), List.of(new Car()), "smith");
+        Person person = new Person(1L, "Nicolas", List.of(RulesBreaks.WRONG_PARKING), List.of(new Car()), "smith");
         ResponseEntity<Person> response = ResponseEntity.status(HttpStatus.OK).body(person);
         when(personService.getPerson()).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.get("/getInfoAboutYourAccount"))
@@ -184,7 +185,7 @@ public class PersonControllerTest {
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestMakeAccountPositive() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.CREATED).body("Account is created successfully");
-        when(personService.makeAccount(anyString(), anyInt(), anyList())).thenReturn(response);
+        when(personService.addRulesBreaks(anyString(), anyList())).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.put("/makeAccount").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(List.of(RulesBreaks.WRONG_PARKING)))
                         .param("username", "admin").param("money", "1000"))
                 .andExpect(MockMvcResultMatchers.status().isCreated())
@@ -196,7 +197,7 @@ public class PersonControllerTest {
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestMakeAccountNegativeNoPerson() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
-        when(personService.makeAccount(anyString(), anyInt(), anyList())).thenReturn(response);
+        when(personService.addRulesBreaks(anyString(), anyList())).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.put("/makeAccount").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(List.of(RulesBreaks.WRONG_PARKING)))
                         .param("username", "admin").param("money", "1000"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
@@ -207,7 +208,7 @@ public class PersonControllerTest {
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestMakeAccountNegativeDBFail() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Account isn't created");
-        when(personService.makeAccount(anyString(), anyInt(), anyList())).thenReturn(response);
+        when(personService.addRulesBreaks(anyString(), anyList())).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.put("/makeAccount").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(List.of(RulesBreaks.WRONG_PARKING)))
                         .param("username", "admin").param("money", "1000"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())

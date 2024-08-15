@@ -42,8 +42,9 @@ public class PersonServiceTest {
     public PersonServiceTest() {
         MockitoAnnotations.initMocks(this);
     }
+
     @Test
-    public void TestSavePersonPositive(){
+    public void TestSavePersonPositive() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -57,7 +58,7 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestSavePersonNegativeNotFullPerson(){
+    public void TestSavePersonNegativeNotFullPerson() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -71,14 +72,14 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestSavePersonNegativeExistingUser(){
+    public void TestSavePersonNegativeExistingUser() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)));
         when(authentication.getName()).thenReturn("smith");
-        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
-        ResponseEntity<String> response = personService.savePerson(new PersonRequest("John",List.of("u123ir")));
+        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
+        ResponseEntity<String> response = personService.savePerson(new PersonRequest("John", List.of("u123ir")));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("You can not create one more account");
         assertEquals(response, expected);
@@ -86,13 +87,13 @@ public class PersonServiceTest {
 
 
     @Test
-    public void TestUpdatePersonPositive(){
+    public void TestUpdatePersonPositive() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)));
         when(authentication.getName()).thenReturn("smith");
-        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
+        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
         ResponseEntity<String> response = personService.updatePerson(new PersonRequest("Nick", List.of("u123ir")));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED)
                 .body("Person is updated successfully");
@@ -100,7 +101,7 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestUpdatePersonNegativeNoUpdatedPerson(){
+    public void TestUpdatePersonNegativeNoUpdatedPerson() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -114,13 +115,13 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestUpdatePersonNegativeNoCar(){
+    public void TestUpdatePersonNegativeNoCar() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
         when(authentication.getName()).thenReturn("smith");
-        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
+        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
         ResponseEntity<String> response = personService.updatePerson(new PersonRequest("Nick", List.of("u123ir")));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("No such car");
@@ -128,21 +129,21 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestDeletePersonPositive(){
+    public void TestDeletePersonPositive() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
         when(authentication.getName()).thenReturn("smith");
         ResponseEntity<Person> response = personService.deletePerson();
         ResponseEntity<Person> expected = ResponseEntity.status(HttpStatus.OK)
-                .body(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith"));
+                .body(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith"));
         assertEquals(response, expected);
     }
 
 
     @Test
-    public void TestDeletePersonNegativeFail(){
+    public void TestDeletePersonNegativeFail() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -155,20 +156,20 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestGetPersonPositive(){
+    public void TestGetPersonPositive() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
         when(authentication.getName()).thenReturn("smith");
         ResponseEntity<Person> response = personService.getPerson();
         ResponseEntity<Person> expected = ResponseEntity.status(HttpStatus.OK)
-                .body(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith"));
+                .body(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith"));
         assertEquals(response, expected);
     }
 
     @Test
-    public void TestGetPersonNegativeFail(){
+    public void TestGetPersonNegativeFail() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -181,17 +182,17 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestMakeAccountPositive(){
-        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", 0, null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
-        ResponseEntity<String> response = personService.makeAccount("smith", 1000, List.of(RulesBreaks.WRONG_PARKING));
+    public void TestMakeAccountPositive() {
+        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
+        ResponseEntity<String> response = personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED).body("Account is created successfully");
         assertEquals(expected, response);
     }
 
     @Test
-    public void TestMakeAccountNegativeNoPerson(){
+    public void TestMakeAccountNegativeNoPerson() {
         when(personRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-        ResponseEntity<String> response = personService.makeAccount("smith", 1000, List.of(RulesBreaks.WRONG_PARKING));
+        ResponseEntity<String> response = personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
         assertEquals(expected, response);
     }

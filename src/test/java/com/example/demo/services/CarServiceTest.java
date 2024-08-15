@@ -72,7 +72,7 @@ public class CarServiceTest {
 
     @Test
     public void TestUpdateCarPositive() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -86,7 +86,7 @@ public class CarServiceTest {
 
     @Test
     public void TestUpdateCarNegativeNoCar() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -100,12 +100,12 @@ public class CarServiceTest {
 
     @Test
     public void TestUpdateCarNegativeWrongCar() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
-        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(new Person(1L, "Adam", 1000, List.of(RulesBreaks.WRONG_PARKING), null, "smith")));
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(new Person(1L, "Adam", List.of(RulesBreaks.WRONG_PARKING), null, "smith")));
         when(authentication.getName()).thenReturn("smith");
         ResponseEntity<String> response = carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("It's not your car");
@@ -114,7 +114,7 @@ public class CarServiceTest {
 
     @Test
     public void TestDeleteCarPositive() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -128,7 +128,7 @@ public class CarServiceTest {
 
     @Test
     public void TestDeleteCarNegativeNoCar() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -142,13 +142,13 @@ public class CarServiceTest {
 
     @Test
     public void TestDeleteCarNegativeWrongPerson() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Adam", 1000, null, null, "smith"), null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Adam", null, null, "smith"), null)));
         ResponseEntity<Car> response = carService.deleteCar("u123ir");
         ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         assertEquals(response, expected);
@@ -156,7 +156,7 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarPositive() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -170,7 +170,7 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarNegativeNoCar() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -184,13 +184,13 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarNegativeWrongPerson() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Adam", 1000, null, null, "smith"), null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Adam", null, null, "smith"), null)));
         ResponseEntity<Car> response = carService.getCar("u123ir");
         ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         assertEquals(response, expected);
@@ -198,9 +198,9 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarsBookingRecordPositive() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         UUID registrationNumber = UUID.randomUUID();
-        BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L),registrationNumber, 1600);
+        BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L), registrationNumber, 1600, UUID.randomUUID());
         Car car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, Set.of(bookingRecord));
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
@@ -215,7 +215,7 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarsBookingRecordNegativeNoCar() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -229,10 +229,10 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarsBookingRecordNegativeWrongPerson() {
-        Person person = new Person(1L, "John", 1000, null, null, "smith");
+        Person person = new Person(1L, "John", null, null, "smith");
         UUID registrationNumber = UUID.randomUUID();
-        BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L),registrationNumber, 1600);
-        Car car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(2L, "Adam", 1000, null, null, "smith2"), Set.of(bookingRecord));
+        BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L), registrationNumber, 1600, UUID.randomUUID());
+        Car car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(2L, "Adam", null, null, "smith2"), Set.of(bookingRecord));
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);

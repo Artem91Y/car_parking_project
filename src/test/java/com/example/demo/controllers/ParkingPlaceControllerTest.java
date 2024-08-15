@@ -6,6 +6,7 @@ import com.example.demo.models.ParkingPlace;
 import com.example.demo.models.Person;
 import com.example.demo.repos.ParkingPlaceRepository;
 import com.example.demo.services.ParkingPlaceService;
+import com.example.demo.utils.models.CardRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -171,9 +172,9 @@ public class ParkingPlaceControllerTest {
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
-    public void TestBuyParkingPlacePositive()  throws Exception{
+    public void TestBuyParkingPlacePositive() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("Parking place is bought successfully");
-        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1)).thenReturn(response);
+        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
         mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Parking place is bought successfully"));
@@ -181,9 +182,9 @@ public class ParkingPlaceControllerTest {
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
-    public void TestBuyParkingPlaceNegativeNoParkingPlace()  throws Exception{
+    public void TestBuyParkingPlaceNegativeNoParkingPlace() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
-        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1)).thenReturn(response);
+        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
         mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("No such parking place"));
@@ -191,9 +192,9 @@ public class ParkingPlaceControllerTest {
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
-    public void TestBuyParkingPlaceNegativeNoCar()  throws Exception{
+    public void TestBuyParkingPlaceNegativeNoCar() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
-        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1)).thenReturn(response);
+        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
         mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("No such car"));
@@ -201,9 +202,9 @@ public class ParkingPlaceControllerTest {
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
-    public void TestBuyParkingPlaceNegativePastTime()  throws Exception{
+    public void TestBuyParkingPlaceNegativePastTime() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
-        when(parkingPlaceService.buyParkingPlace("2021-09-05 09:00", "2024-09-05 15:00", "u123ir", 1)).thenReturn(response);
+        when(parkingPlaceService.buyParkingPlace("2021-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
         mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2021-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.content().string("You gave past time"));
@@ -211,10 +212,10 @@ public class ParkingPlaceControllerTest {
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
-    public void TestBuyParkingPlaceNegativeNoMoney()  throws Exception{
-        Person person = new Person(1L, "John", 1500, null, null, "smith");
+    public void TestBuyParkingPlaceNegativeNoMoney() throws Exception {
+        Person person = new Person(1L, "John", null, null, "smith");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
-        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1)).thenReturn(response);
+        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
         mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.content().string("You haven't enough money"));
@@ -222,10 +223,10 @@ public class ParkingPlaceControllerTest {
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
-    public void TestBuyParkingPlaceNegativeWrongTime()  throws Exception{
-        Person person = new Person(1L, "John", 1500, null, null, "smith");
+    public void TestBuyParkingPlaceNegativeWrongTime() throws Exception {
+        Person person = new Person(1L, "John", null, null, "smith");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave wrong time");
-        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1)).thenReturn(response);
+        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
         mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.content().string("You gave wrong time"));
@@ -233,10 +234,10 @@ public class ParkingPlaceControllerTest {
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
-    public void TestBuyParkingPlaceNegativeBookedTime() throws Exception{
-        Person person = new Person(1L, "John", 1500, null, null, "smith");
+    public void TestBuyParkingPlaceNegativeBookedTime() throws Exception {
+        Person person = new Person(1L, "John", null, null, "smith");
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This time is already booked");
-        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1)).thenReturn(response);
+        when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
         mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
                 .andExpect(MockMvcResultMatchers.status().isInternalServerError())
                 .andExpect(MockMvcResultMatchers.content().string("This time is already booked"));
@@ -277,7 +278,7 @@ public class ParkingPlaceControllerTest {
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestDeleteBookingRecordPositive() throws Exception {
         UUID registrationNumber = UUID.randomUUID();
-        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber, 0);
+        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber, 0, UUID.randomUUID());
         ResponseEntity<BookingRecord> response = ResponseEntity.status(HttpStatus.OK).body(bookingRecord);
         when(parkingPlaceService.deleteBookingRecord(registrationNumber)).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.delete("/deleteBookingRecord").param("registrationNumber", registrationNumber.toString()))
@@ -313,7 +314,7 @@ public class ParkingPlaceControllerTest {
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
     public void TestGetParkingPlaceBookingRecordPositive() throws Exception {
         UUID registrationNumber = UUID.randomUUID();
-        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber, 0);
+        BookingRecord bookingRecord = new BookingRecord(1L, null, null, null, null, registrationNumber, 0, UUID.randomUUID());
         ResponseEntity<Set<BookingRecord>> response = ResponseEntity.status(HttpStatus.OK).body(Set.of(bookingRecord));
         when(parkingPlaceService.getParkingPlacesBookingRecords(1)).thenReturn(response);
         mockMvc.perform(MockMvcRequestBuilders.get("/getParkingPlacesBookingRecords/1"))

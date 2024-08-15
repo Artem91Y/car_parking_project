@@ -1,5 +1,6 @@
 package com.example.demo.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,6 +22,7 @@ public class ParkingPlace {
     @Column(unique = true)
     private Integer number;
 
+    @JsonBackReference
     @OneToMany(mappedBy = "parkingPlace", fetch = FetchType.EAGER)
     @Column(name = "booking_records")
     private Set<BookingRecord> bookingRecords;

@@ -32,7 +32,7 @@ public class CarController {
         return carService.getCar(number);
     }
 
-    @GetMapping("/getCarsBookingRecord")
+    @GetMapping("/getCarsBookingRecords")
     public ResponseEntity<Set<BookingRecord>> getCarsBookingRecords(@RequestParam String number) {
         return carService.getCarsBookingRecords(number);
     }
