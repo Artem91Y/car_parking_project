@@ -41,7 +41,12 @@ public class ParkingPlaceService {
 
     private final double ratioOfTax;
 
-    public ParkingPlaceService(ParkingPlaceRepository parkingPlaceRepository, ApiConnection apiConnection, PersonRepository personRepository, BookingRecordRepository bookingRecordRepository, CarRepository carRepository, @Value("${ratio-of-tax}") double ratioOfTax) {
+    public ParkingPlaceService(ParkingPlaceRepository parkingPlaceRepository,
+                               ApiConnection apiConnection,
+                               PersonRepository personRepository,
+                               BookingRecordRepository bookingRecordRepository,
+                               CarRepository carRepository,
+                               @Value("${ratio-of-tax}") double ratioOfTax) {
         this.parkingPlaceRepository = parkingPlaceRepository;
         this.apiConnection = apiConnection;
         this.personRepository = personRepository;

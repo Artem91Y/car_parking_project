@@ -10,11 +10,13 @@ import com.example.demo.repos.BookingRecordRepository;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.ParkingPlaceRepository;
 import com.example.demo.repos.PersonRepository;
+import com.example.demo.utils.ApiConnection;
 import com.example.demo.utils.models.CardRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -38,19 +40,16 @@ public class ParkingPlaceServiceTest {
 
     @InjectMocks
     private ParkingPlaceService parkingPlaceService;
-
     @Mock
     private ParkingPlaceRepository parkingPlaceRepository;
-
     @Mock
     private CarRepository carRepository;
-
     @Mock
     private Authentication authentication;
-
     @Mock
     private PersonRepository personRepository;
-
+    @Mock
+    private ApiConnection apiConnection;
     @Mock
     private BookingRecordRepository bookingRecordRepository;
 
