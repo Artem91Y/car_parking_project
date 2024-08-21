@@ -85,6 +85,7 @@ public class ApiConnection {
         String response1 = null;
         try {
             response1 = response.body().string();
+            System.out.println(response1);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -99,7 +100,7 @@ public class ApiConnection {
                 throw new CancellationPaymentException(String.valueOf(node.get("cancellation_details")));
             }
         }
-        if (node.has("type") && node.has("error")){
+        if (node.has("type") && node.get("type").asText().equals("error")){
             throw new CancellationPaymentException(String.valueOf(node.get("description")));
         }
         UUID paymentId = null;

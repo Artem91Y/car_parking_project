@@ -184,20 +184,17 @@ public class ParkingPlaceService {
                 bookingRecordSetCar = Set.of(bookingRecord);
             }
             int price = CountMoney.countPrice(dateDiff, parkingPlace, bookingRecord);
-            try {
-                PaymentRequest paymentRequest = PaymentRequest
-                        .builder()
-                        .amount(new Amount(price, "RUB"))
-                        .refundable(true)
-                        .confirmation(new ConfirmationRequest())
-                        .paymentMethod(new PaymentRequestMethod(cardRequest))
-                        .build();
-                System.out.println(paymentRequest);
-                UUID paymentId = apiConnection.createPayment(paymentRequest);
-                bookingRecord.setPaymentId(paymentId);
-            } catch (CaptureFailedException | CancellationPaymentException | ApiKassaConnectionException e) {
-                return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(e.getMessage());
-            }
+
+            PaymentRequest paymentRequest = PaymentRequest
+                    .builder()
+                    .amount(new Amount(price, "RUB"))
+                    .refundable(true)
+                    .confirmation(new ConfirmationRequest())
+                    .paymentMethod(new PaymentRequestMethod(cardRequest))
+                    .build();
+            System.out.println(paymentRequest);
+            UUID paymentId = apiConnection.createPayment(paymentRequest);
+            bookingRecord.setPaymentId(paymentId);
             car.setBookingRecords(bookingRecordSetCar);
             parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
             personRepository.save(person);
