@@ -8,6 +8,7 @@ import lombok.*;
 @Setter
 @Getter
 @EqualsAndHashCode
+@ToString
 public class CarRequest {
     private String number;
     private TypeOfCar type;

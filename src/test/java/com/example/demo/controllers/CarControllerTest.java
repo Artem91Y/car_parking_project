@@ -1,5 +1,6 @@
 package com.example.demo.controllers;
 
+import com.example.demo.DemoApplication;
 import com.example.demo.dtos.CarRequest;
 import com.example.demo.dtos.PersonRequest;
 import com.example.demo.models.Car;
@@ -26,7 +27,7 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@SpringBootTest(classes = {DemoApplication.class})
 @AutoConfigureMockMvc
 public class CarControllerTest {
 

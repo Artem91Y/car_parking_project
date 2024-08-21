@@ -38,21 +38,20 @@ public class ParkingPlaceService {
     private final PersonRepository personRepository;
     private final BookingRecordRepository bookingRecordRepository;
     private final CarRepository carRepository;
-
-    private final double ratioOfTax;
+    @Value("${ratio-of-tax}")
+    private double ratioOfTax;
 
     public ParkingPlaceService(ParkingPlaceRepository parkingPlaceRepository,
                                ApiConnection apiConnection,
                                PersonRepository personRepository,
                                BookingRecordRepository bookingRecordRepository,
-                               CarRepository carRepository,
-                               @Value("${ratio-of-tax}") double ratioOfTax) {
+                               CarRepository carRepository
+                                ) {
         this.parkingPlaceRepository = parkingPlaceRepository;
         this.apiConnection = apiConnection;
         this.personRepository = personRepository;
         this.bookingRecordRepository = bookingRecordRepository;
         this.carRepository = carRepository;
-        this.ratioOfTax = ratioOfTax;
     }
 
     public ResponseEntity<String> saveParkingPlace(ParkingPlaceRequest parkingPlaceRequest) {
@@ -197,7 +196,7 @@ public class ParkingPlaceService {
                 UUID paymentId = apiConnection.createPayment(paymentRequest);
                 bookingRecord.setPaymentId(paymentId);
             } catch (CaptureFailedException | CancellationPaymentException | ApiKassaConnectionException e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+                return ResponseEntity.status(HttpStatus.MULTI_STATUS).body(e.getMessage());
             }
             car.setBookingRecords(bookingRecordSetCar);
             parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
@@ -210,19 +209,18 @@ public class ParkingPlaceService {
         }
     }
 
-    @Transactional
     public ResponseEntity<BookingRecord> deleteBookingRecord(UUID registrationNumber) {
         Optional<BookingRecord> deletedBookingRecord = bookingRecordRepository.findByRegistrationNumber(registrationNumber);
         if (deletedBookingRecord.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+
         try {
             BookingRecord bookingRecord = deletedBookingRecord.get();
             apiConnection.refund(bookingRecord.getPaymentId(), (int) (bookingRecord.getPrice() * ratioOfTax));
             bookingRecordRepository.deleteByRegistrationNumber(registrationNumber);
             return ResponseEntity.status(HttpStatus.OK).body(bookingRecord);
         } catch (Exception e) {
-            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

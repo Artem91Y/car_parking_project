@@ -1,5 +1,8 @@
 package com.example.demo.services;
 
+import com.example.demo.dtos.ApiKassaConnectionException;
+import com.example.demo.dtos.CancellationPaymentException;
+import com.example.demo.dtos.CaptureFailedException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
@@ -11,6 +14,7 @@ import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.ParkingPlaceRepository;
 import com.example.demo.repos.PersonRepository;
 import com.example.demo.utils.ApiConnection;
+import com.example.demo.utils.PaymentRequest;
 import com.example.demo.utils.models.CardRequest;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -40,6 +44,9 @@ public class ParkingPlaceServiceTest {
 
     @InjectMocks
     private ParkingPlaceService parkingPlaceService;
+
+
+
     @Mock
     private ParkingPlaceRepository parkingPlaceRepository;
     @Mock
@@ -50,8 +57,17 @@ public class ParkingPlaceServiceTest {
     private PersonRepository personRepository;
     @Mock
     private ApiConnection apiConnection;
+//    @Mock
+//    private double ratioOfTax;
     @Mock
     private BookingRecordRepository bookingRecordRepository;
+//    {
+//        parkingPlaceService = new ParkingPlaceService(parkingPlaceRepository,
+//                apiConnection,
+//                personRepository,
+//                bookingRecordRepository,
+//                carRepository);
+//    }
 
 
     public ParkingPlaceServiceTest() {
@@ -200,16 +216,22 @@ public class ParkingPlaceServiceTest {
     }
 
     @Test
-    public void TestBuyParkingPlaceNegativeNoMoney() {
+    public void TestBuyParkingPlaceNegativeNoMoney(){
         Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
+        try {
+            when(apiConnection.createPayment(any(PaymentRequest.class))).thenThrow(new CancellationPaymentException("You haven't enough money"));
+        } catch (CaptureFailedException | CancellationPaymentException | ApiKassaConnectionException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest());
+        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest("5555555555554600", 2399, "01"));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
         assertEquals(response, expected);
     }
@@ -250,7 +272,7 @@ public class ParkingPlaceServiceTest {
         BookingRecord bookingRecord = new BookingRecord(1L, new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Nicolas", null, null, "smith"), null), null, null, null, registrationNumber, 1200, UUID.randomUUID());
         when(bookingRecordRepository.findByRegistrationNumber(registrationNumber)).thenReturn(Optional.of(bookingRecord));
         ResponseEntity<BookingRecord> response = parkingPlaceService.deleteBookingRecord(registrationNumber);
-        ResponseEntity<BookingRecord> expected = ResponseEntity.status(HttpStatus.OK).body(new BookingRecord(1L, null, null, null, null, registrationNumber, 1200, UUID.randomUUID()));
+        ResponseEntity<BookingRecord> expected = ResponseEntity.status(HttpStatus.OK).body(bookingRecord);
         assertEquals(response, expected);
     }
 

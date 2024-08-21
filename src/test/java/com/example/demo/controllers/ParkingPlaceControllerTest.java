@@ -175,7 +175,7 @@ public class ParkingPlaceControllerTest {
     public void TestBuyParkingPlacePositive() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.OK).body("Parking place is bought successfully");
         when(parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest())).thenReturn(response);
-        mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir"))
+        mockMvc.perform(((MockMvcRequestBuilders.put("/buyParkingPlace/1").param("startTime", "2024-09-05 09:00")).param("endTime", "2024-09-05 15:00")).param("carNumber", "u123ir").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(new CardRequest("5555555555554600", 2999, "01"))))
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.content().string("Parking place is bought successfully"));
     }

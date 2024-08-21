@@ -85,7 +85,6 @@ public class ApiConnection {
         String response1 = null;
         try {
             response1 = response.body().string();
-            System.out.println(response1);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -100,7 +99,7 @@ public class ApiConnection {
                 throw new CancellationPaymentException(String.valueOf(node.get("cancellation_details")));
             }
         }
-        if (node.has("type")){
+        if (node.has("type") && node.has("error")){
             throw new CancellationPaymentException(String.valueOf(node.get("description")));
         }
         UUID paymentId = null;
@@ -125,7 +124,6 @@ public class ApiConnection {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
-        System.out.println(json);
         Request request = new Request.Builder()
                 .post(RequestBody.create(MediaType.parse("APPLICATION/JSON"), json))
                 .url(baseUrl + "refunds")
