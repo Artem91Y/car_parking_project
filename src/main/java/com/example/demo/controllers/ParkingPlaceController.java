@@ -1,9 +1,9 @@
 package com.example.demo.controllers;
 
+import com.example.demo.dtos.CancellationPaymentException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.services.ParkingPlaceService;
-import com.example.demo.utils.PaymentRequest;
 import com.example.demo.utils.models.CardRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +42,11 @@ public class ParkingPlaceController {
                                                   @RequestParam String startTime,
                                                   @RequestParam String endTime,
                                                   @RequestBody CardRequest cardRequest) {
-        return parkingPlaceService.buyParkingPlace(startTime, endTime, carNumber, parkingPlaceNumber, cardRequest);
+        try {
+            return parkingPlaceService.buyParkingPlace(startTime, endTime, carNumber, parkingPlaceNumber, cardRequest);
+        } catch (CancellationPaymentException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @GetMapping("/getParkingPlace/{number}")

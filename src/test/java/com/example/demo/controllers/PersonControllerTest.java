@@ -5,6 +5,7 @@ import com.example.demo.models.Car;
 import com.example.demo.models.Person;
 import com.example.demo.models.enums.RulesBreaks;
 import com.example.demo.repos.PersonRepository;
+import com.example.demo.services.ParkingPlaceService;
 import com.example.demo.services.PersonService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ public class PersonControllerTest {
 
     @MockBean
     private PersonRepository personRepository;
+
+    @MockBean
+    private ParkingPlaceService parkingPlaceService;
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})

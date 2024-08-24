@@ -1,4 +1,4 @@
-package com.example.demo.utils;
+package com.example.demo.utils.models;
 
 import com.example.demo.utils.models.CardRequest;
 import lombok.*;

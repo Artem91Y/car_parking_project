@@ -85,6 +85,34 @@ public class PersonServiceTest {
         assertEquals(response, expected);
     }
 
+    @Test
+    public void TestSavePersonNegativeDBFail() {
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(carRepository.findCarByNumber("u123ir")).thenThrow(new Exception());
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
+        when(authentication.getName()).thenReturn("smith");
+        ResponseEntity<String> response = personService.savePerson(new PersonRequest("John", List.of("u123ir")));
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Person isn't created");
+        assertEquals(response, expected);
+    }
+
+    @Test
+    public void TestSavePersonNegativeNoCar() {
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
+        when(authentication.getName()).thenReturn("smith");
+        ResponseEntity<String> response = personService.savePerson(new PersonRequest("John", List.of("u123ir")));
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body("No such car");
+        assertEquals(response, expected);
+    }
+
 
     @Test
     public void TestUpdatePersonPositive() {
@@ -125,6 +153,20 @@ public class PersonServiceTest {
         ResponseEntity<String> response = personService.updatePerson(new PersonRequest("Nick", List.of("u123ir")));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body("No such car");
+        assertEquals(response, expected);
+    }
+
+    @Test
+    public void TestUpdatePersonNegativeDBFail() {
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(carRepository.findCarByNumber("u123ir")).thenThrow(new Exception());
+        when(authentication.getName()).thenReturn("smith");
+        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
+        ResponseEntity<String> response = personService.updatePerson(new PersonRequest("Nick", List.of("u123ir")));
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Person isn't updated");
         assertEquals(response, expected);
     }
 
@@ -182,18 +224,26 @@ public class PersonServiceTest {
     }
 
     @Test
-    public void TestMakeAccountPositive() {
+    public void TestAddRulesBreaksPositive() {
         when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
         ResponseEntity<String> response = personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED).body("Account is created successfully");
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED).body("Rules breaks are added successfully");
         assertEquals(expected, response);
     }
 
     @Test
-    public void TestMakeAccountNegativeNoPerson() {
+    public void TestAddRulesBreaksNegativeNoPerson() {
         when(personRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         ResponseEntity<String> response = personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
+        assertEquals(expected, response);
+    }
+
+    @Test
+    public void TestAddRulesBreaksNegativeDBFail() {
+        when(personRepository.findByUsername(anyString())).thenThrow(new Exception());
+        ResponseEntity<String> response = personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING));
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Rules breaks aren't added");
         assertEquals(expected, response);
     }
 }

@@ -1,7 +1,8 @@
-package com.example.demo.utils;
+package com.example.demo.utils.models;
 
 import com.example.demo.utils.models.Amount;
 import com.example.demo.utils.models.ConfirmationRequest;
+import com.example.demo.utils.models.PaymentRequestMethod;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 

@@ -1,8 +1,6 @@
 package com.example.demo.utils;
 
-import com.example.demo.utils.models.Amount;
-import com.example.demo.utils.models.CardRequest;
-import com.example.demo.utils.models.ConfirmationRequest;
+import com.example.demo.utils.models.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

@@ -1,14 +1,11 @@
 package com.example.demo.controllers;
 
-import com.example.demo.DemoApplication;
 import com.example.demo.dtos.CarRequest;
-import com.example.demo.dtos.PersonRequest;
 import com.example.demo.models.Car;
-import com.example.demo.models.Person;
-import com.example.demo.models.enums.RulesBreaks;
 import com.example.demo.models.enums.TypeOfCar;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.services.CarService;
+import com.example.demo.services.ParkingPlaceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.util.List;
-
 import static org.mockito.Mockito.when;
 
-@SpringBootTest(classes = {DemoApplication.class})
+@SpringBootTest
 @AutoConfigureMockMvc
 public class CarControllerTest {
 
@@ -42,6 +37,9 @@ public class CarControllerTest {
 
     @MockBean
     private CarRepository carRepository;
+
+    @MockBean
+    private ParkingPlaceService parkingPlaceService;
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})

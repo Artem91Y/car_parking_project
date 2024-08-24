@@ -55,6 +55,14 @@ public class CarServiceTest {
     }
 
     @Test
+    public void TestSaveCarNegativeDBFail() {
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
+        ResponseEntity<String> response = carService.saveCar(new CarRequest("u123ir", TypeOfCar.USUAL_CAR));
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't created");
+        assertEquals(response, expected);
+    }
+
+    @Test
     public void TestSaveCarNegative() {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)));
         ResponseEntity<String> response = carService.saveCar(new CarRequest("u123ir", TypeOfCar.USUAL_CAR));
@@ -81,6 +89,20 @@ public class CarServiceTest {
         when(authentication.getName()).thenReturn("smith");
         ResponseEntity<String> response = carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED).body("Car is updated successfully");
+        assertEquals(response, expected);
+    }
+
+    @Test
+    public void TestUpdateCarNegativeDBFail() {
+        Person person = new Person(1L, "John", null, null, "smith");
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+        SecurityContextHolder.setContext(securityContext);
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
+        when(authentication.getName()).thenReturn("smith");
+        ResponseEntity<String> response = carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
+        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't updated");
         assertEquals(response, expected);
     }
 

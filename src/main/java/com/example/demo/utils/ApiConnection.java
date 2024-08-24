@@ -5,6 +5,7 @@ import com.example.demo.dtos.CancellationPaymentException;
 import com.example.demo.dtos.CaptureFailedException;
 import com.example.demo.dtos.FailRefundPaymentException;
 import com.example.demo.utils.models.Amount;
+import com.example.demo.utils.models.PaymentRequest;
 import com.example.demo.utils.models.RefundDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,8 +28,8 @@ public class ApiConnection {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private String secretKey = "test_5O4maTCzMLnqNnYz6iSZZHKm5McLYamIEAlT9jXIECI";
-    private String shopID = "417160";
+    private final String secretKey = "test_5O4maTCzMLnqNnYz6iSZZHKm5McLYamIEAlT9jXIECI";
+    private final String shopID = "417160";
 
 
     {

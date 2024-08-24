@@ -1,8 +1,6 @@
 package com.example.demo.services;
 
-import com.example.demo.dtos.ApiKassaConnectionException;
 import com.example.demo.dtos.CancellationPaymentException;
-import com.example.demo.dtos.CaptureFailedException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
@@ -12,16 +10,16 @@ import com.example.demo.repos.BookingRecordRepository;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.ParkingPlaceRepository;
 import com.example.demo.repos.PersonRepository;
-import com.example.demo.utils.*;
-import com.example.demo.utils.models.Amount;
-import com.example.demo.utils.models.CardRequest;
-import com.example.demo.utils.models.ConfirmationRequest;
+import com.example.demo.utils.ApiConnection;
+import com.example.demo.utils.CheckIfTimeIsBooked;
+import com.example.demo.utils.CountDatesDifference;
+import com.example.demo.utils.CountMoney;
+import com.example.demo.utils.models.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DateTimeException;
 import java.time.Duration;
@@ -46,7 +44,7 @@ public class ParkingPlaceService {
                                PersonRepository personRepository,
                                BookingRecordRepository bookingRecordRepository,
                                CarRepository carRepository
-                                ) {
+    ) {
         this.parkingPlaceRepository = parkingPlaceRepository;
         this.apiConnection = apiConnection;
         this.personRepository = personRepository;
@@ -126,11 +124,9 @@ public class ParkingPlaceService {
         }
     }
 
-    public ResponseEntity<String> buyParkingPlace(String startTime,
-                                                  String endTime,
-                                                  String carNumber,
+    public ResponseEntity<String> buyParkingPlace(String startTime, String endTime, String carNumber,
                                                   int parkingPlaceNumber,
-                                                  CardRequest cardRequest) {
+                                                  CardRequest cardRequest) throws CancellationPaymentException {
         if (parkingPlaceRepository.findByNumber(parkingPlaceNumber).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
         }

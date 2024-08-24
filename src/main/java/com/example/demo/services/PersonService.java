@@ -114,9 +114,9 @@ public class PersonService {
         }
         try {
             personRepository.save(person);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Account is created successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body("Rules breaks are added successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Account isn't created");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Rules breaks aren't added");
         }
     }
 }
