@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -90,13 +92,9 @@ public class PersonServiceTest {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenThrow(new Exception());
-        when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = personService.savePerson(new PersonRequest("John", List.of("u123ir")));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Person isn't created");
-        assertEquals(response, expected);
+        when(personRepository.findByUsername(anyString())).thenThrow(new DataAccessException("DB error") {});
+        assertThrows(DataAccessException.class, () -> personService.savePerson(new PersonRequest("John", List.of("u123ir"))));
     }
 
     @Test
@@ -161,13 +159,9 @@ public class PersonServiceTest {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenThrow(new Exception());
         when(authentication.getName()).thenReturn("smith");
-        when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(new Person(1L, "John", null, List.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)), "smith")));
-        ResponseEntity<String> response = personService.updatePerson(new PersonRequest("Nick", List.of("u123ir")));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Person isn't updated");
-        assertEquals(response, expected);
+        when(personRepository.findByUsername(anyString())).thenThrow(new DataAccessException("DB error") {});
+        assertThrows(DataAccessException.class, () -> personService.updatePerson(new PersonRequest("Nick", List.of("u123ir"))));
     }
 
     @Test
@@ -241,9 +235,7 @@ public class PersonServiceTest {
 
     @Test
     public void TestAddRulesBreaksNegativeDBFail() {
-        when(personRepository.findByUsername(anyString())).thenThrow(new Exception());
-        ResponseEntity<String> response = personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Rules breaks aren't added");
-        assertEquals(expected, response);
+        when(personRepository.findByUsername(anyString())).thenThrow(new DataAccessException("DB error") {});
+        assertThrows(DataAccessException.class, () -> personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING)));
     }
 }

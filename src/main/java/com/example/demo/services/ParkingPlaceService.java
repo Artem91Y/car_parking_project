@@ -126,7 +126,7 @@ public class ParkingPlaceService {
 
     public ResponseEntity<String> buyParkingPlace(String startTime, String endTime, String carNumber,
                                                   int parkingPlaceNumber,
-                                                  CardRequest cardRequest) throws CancellationPaymentException {
+                                                  CardRequest cardRequest) {
         if (parkingPlaceRepository.findByNumber(parkingPlaceNumber).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
         }

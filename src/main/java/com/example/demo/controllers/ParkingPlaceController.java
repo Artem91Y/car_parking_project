@@ -42,11 +42,7 @@ public class ParkingPlaceController {
                                                   @RequestParam String startTime,
                                                   @RequestParam String endTime,
                                                   @RequestBody CardRequest cardRequest) {
-        try {
-            return parkingPlaceService.buyParkingPlace(startTime, endTime, carNumber, parkingPlaceNumber, cardRequest);
-        } catch (CancellationPaymentException e) {
-            throw new RuntimeException(e);
-        }
+        return parkingPlaceService.buyParkingPlace(startTime, endTime, carNumber, parkingPlaceNumber, cardRequest);
     }
 
     @GetMapping("/getParkingPlace/{number}")

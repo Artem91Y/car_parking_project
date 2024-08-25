@@ -93,11 +93,8 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestSaveParkingPlaceNegativeDBFail() {
-        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new Exception());
-        ResponseEntity<String> response = parkingPlaceService.saveParkingPlace(parkingPlaceRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Parking place isn't created");
-        assertEquals(response, expected);
+        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new DataAccessException("DB error") {});
+        assertThrows(DataAccessException.class, () -> parkingPlaceService.saveParkingPlace(parkingPlaceRequest));
     }
 
     @Test
@@ -153,11 +150,8 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestDeleteParkingPlaceNegativeDBFail() {
-        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new Exception());
-        ResponseEntity<String> response = parkingPlaceService.deleteParkingPlace(1);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .build();
-        assertEquals(response, expected);
+        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new DataAccessException("DB error") {});
+        assertThrows(DataAccessException.class, () -> parkingPlaceService.deleteParkingPlace(1));
     }
 
     @Test
