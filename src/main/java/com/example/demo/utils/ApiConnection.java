@@ -31,6 +31,8 @@ public class ApiConnection {
     private final String secretKey = "test_5O4maTCzMLnqNnYz6iSZZHKm5McLYamIEAlT9jXIECI";
     private final String shopID = "417160";
 
+    private final OkHttpClient okHttpClient = new OkHttpClient();
+
 
     {
         try {
@@ -41,13 +43,12 @@ public class ApiConnection {
     }
 
     public UUID createPayment(PaymentRequest paymentRequest) throws CaptureFailedException, CancellationPaymentException, ApiKassaConnectionException {
-        ObjectMapper objectMapper1 = new ObjectMapper();
+
         System.out.println(paymentRequest);
         Response response;
-        OkHttpClient okHttpClient = new OkHttpClient();
         String json;
         try {
-            json = objectMapper1.writeValueAsString(paymentRequest);
+            json = objectMapper.writeValueAsString(paymentRequest);
         } catch (JsonProcessingException e) {
             return null;
         }
@@ -96,12 +97,12 @@ public class ApiConnection {
             throw new RuntimeException(e);
         }
 
-        if (node.has("status") && node.get("status").asText().equals("canceled")) {
+        if (node.has("status") && node.get("status").asText().equals("canceled")) { // case 1
             if (node.has("cancellation_details")) {
                 throw new CancellationPaymentException(String.valueOf(node.get("cancellation_details")));
             }
         }
-        if (node.has("type") && node.get("type").asText().equals("error")){
+        if (node.has("type") && node.get("type").asText().equals("error")){ // case two
             throw new CancellationPaymentException(String.valueOf(node.get("description")));
         }
         UUID paymentId = null;

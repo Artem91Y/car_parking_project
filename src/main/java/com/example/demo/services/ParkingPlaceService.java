@@ -16,6 +16,7 @@ import com.example.demo.utils.CountDatesDifference;
 import com.example.demo.utils.CountMoney;
 import com.example.demo.utils.models.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,6 +26,7 @@ import java.time.DateTimeException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -133,7 +135,7 @@ public class ParkingPlaceService {
         if (carRepository.findCarByNumber(carNumber).isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
         }
-        try {
+
             Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
             Car car = carRepository.findCarByNumber(carNumber).get();
             ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(parkingPlaceNumber).get();
@@ -144,26 +146,20 @@ public class ParkingPlaceService {
             Duration dateDiff = null;
             LocalDateTime startTime2;
             LocalDateTime endTime2;
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
             try {
-                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter);
+                startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter); // validate startTime
                 endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
-                try {
-                    dateDiff = CountDatesDifference.countDateDiffFromStrings(startTime2, endTime2);
-                } catch (DateTimeException e) {
-                    if (e.getMessage().equals("Past time")) {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
-                    }
-                    if (e.getMessage().equals("Wrong dates")) {
-                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Wrong dates");
-                    }
-
-                }
-            } catch (Exception e) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Incorrect format of dates");
+            } catch (DateTimeParseException e){
+                throw new CancellationPaymentException("Incorrect format of dates");
+            }
+            try {
+                dateDiff = CountDatesDifference.countDateDiffFromStrings(startTime2, endTime2);
+            } catch (DateTimeException e) {
+                throw new CancellationPaymentException(e.getMessage());
             }
             if (CheckIfTimeIsBooked.checkIfTimeIsBooked(parkingPlace, startTime2, endTime2)) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This time is already booked");
+                throw new CancellationPaymentException("This time is already booked");
             }
             bookingRecord.setEndTime(endTime2);
             bookingRecord.setStartTime(startTime2);
@@ -197,9 +193,6 @@ public class ParkingPlaceService {
             carRepository.save(car);
             bookingRecordRepository.save(bookingRecord);
             return ResponseEntity.status(HttpStatus.OK).body("Parking place is bought successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Parking place isn't bought");
-        }
     }
 
     public ResponseEntity<BookingRecord> deleteBookingRecord(UUID registrationNumber) {

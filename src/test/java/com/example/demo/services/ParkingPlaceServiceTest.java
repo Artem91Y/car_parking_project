@@ -1,8 +1,6 @@
 package com.example.demo.services;
 
-import com.example.demo.dtos.ApiKassaConnectionException;
 import com.example.demo.dtos.CancellationPaymentException;
-import com.example.demo.dtos.CaptureFailedException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
@@ -14,8 +12,8 @@ import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.ParkingPlaceRepository;
 import com.example.demo.repos.PersonRepository;
 import com.example.demo.utils.ApiConnection;
-import com.example.demo.utils.models.PaymentRequest;
 import com.example.demo.utils.models.CardRequest;
+import com.example.demo.utils.models.PaymentRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -227,30 +225,21 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2021-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest());
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You gave past time");
-        assertEquals(response, expected);
+        assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("2021-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "You gave past time");
     }
 
     @Test
     public void TestBuyParkingPlaceNegativeNoMoney() {
         Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
-        try {
-            when(apiConnection.createPayment(any(PaymentRequest.class))).thenThrow(new CancellationPaymentException("You haven't enough money"));
-        } catch (CaptureFailedException | CancellationPaymentException | ApiKassaConnectionException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+        when(apiConnection.createPayment(any(PaymentRequest.class))).thenThrow(new CancellationPaymentException("You haven't enough money"));
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest("5555555555554600", 2399, "01"));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You haven't enough money");
-        assertEquals(response, expected);
+        assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest("5555555555554600", 2399, "01")), "You haven't enough money");
     }
 
     @Test
@@ -263,9 +252,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-009-05 15:00", "2024-09-05 09:00", "u123ir", 1, new CardRequest());
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Incorrect format of dates");
-        assertEquals(response, expected);
+        assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("wrong format", "2024-09-05 09:00", "u123ir", 1, new CardRequest()), "Incorrect format of dates");
     }
 
     @Test
@@ -278,9 +265,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest());
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This time is already booked");
-        assertEquals(response, expected);
+        assertThrows(CancellationPaymentException.class, ()-> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "This time is already booked");
     }
 
     @Test
