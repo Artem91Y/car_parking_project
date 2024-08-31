@@ -1,5 +1,7 @@
 package com.example.demo.services;
 
+import com.example.demo.dtos.ErrorException;
+import com.example.demo.dtos.NotFoundException;
 import com.example.demo.dtos.PersonRequest;
 import com.example.demo.models.Car;
 import com.example.demo.models.Person;
@@ -26,12 +28,10 @@ public class PersonService {
 
     public ResponseEntity<String> savePerson(PersonRequest personRequest) {
         if (personRequest.getFullName().isEmpty() || SecurityContextHolder.getContext().getAuthentication().getName().isEmpty() || personRequest.getNumbers().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Person isn't full to be created");
+            throw new ErrorException("Person isn't full to be created");
         }
         if (personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("You can not create one more account");
+            throw new ErrorException("You can not create one more account");
         }
         Person person = new Person();
         person.setFullName(personRequest.getFullName());
@@ -43,7 +43,7 @@ public class PersonService {
                 car.setPerson(person);
                 cars.add(car);
             } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
+                throw new NotFoundException("No such car");
             }
         }
         person.setCars(cars);
@@ -53,14 +53,13 @@ public class PersonService {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body("Person is created successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Person isn't created");
+            throw new ErrorException("Person isn't created");
         }
     }
 
     public ResponseEntity<String> updatePerson(PersonRequest personRequest) {
         if (personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
+            throw new NotFoundException("No such person");
         }
         Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
         if (!(personRequest.getNumbers().isEmpty())) {
@@ -69,7 +68,7 @@ public class PersonService {
                 if (carRepository.findCarByNumber(number).isPresent()) {
                     cars.add(carRepository.findCarByNumber(number).get());
                 } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
+                    throw new NotFoundException("No such car");
                 }
             }
             person.setCars(cars);
@@ -81,7 +80,7 @@ public class PersonService {
             personRepository.save(person);
             return ResponseEntity.status(HttpStatus.CREATED).body("Person is updated successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Person isn't updated");
+            throw new ErrorException("Person isn't updated");
         }
     }
 
@@ -91,7 +90,7 @@ public class PersonService {
             personRepository.delete(person);
             return ResponseEntity.status(HttpStatus.OK).body(person);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Person isn't deleted");
         }
     }
 
@@ -100,13 +99,13 @@ public class PersonService {
             Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
             return ResponseEntity.status(HttpStatus.OK).body(person);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Person isn't got");
         }
     }
 
     public ResponseEntity<String> addRulesBreaks(String username, List<RulesBreaks> rulesBreaks) {
         if (personRepository.findByUsername(username).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
+            throw new NotFoundException("No such person");
         }
         Person person = personRepository.findByUsername(username).get();
         if (!rulesBreaks.isEmpty()) {
@@ -116,7 +115,7 @@ public class PersonService {
             personRepository.save(person);
             return ResponseEntity.status(HttpStatus.CREATED).body("Rules breaks are added successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Rules breaks aren't added");
+            throw new ErrorException("Rules breaks aren't added");
         }
     }
 }

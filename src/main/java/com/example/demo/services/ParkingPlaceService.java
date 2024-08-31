@@ -1,6 +1,8 @@
 package com.example.demo.services;
 
 import com.example.demo.dtos.CancellationPaymentException;
+import com.example.demo.dtos.ErrorException;
+import com.example.demo.dtos.NotFoundException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
@@ -59,8 +61,7 @@ public class ParkingPlaceService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Parking place isn't full to be created");
         }
         if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("This parking place is already exist");
+            throw new ErrorException("This parking place is already exist");
         }
         ParkingPlace parkingPlace = new ParkingPlace();
         parkingPlace.setNumber(parkingPlaceRequest.getNumber());
@@ -71,19 +72,16 @@ public class ParkingPlaceService {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body("Parking place is created successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Parking place isn't created");
+            throw new ErrorException("Parking place isn't created");
         }
     }
 
     public ResponseEntity<String> updateParkingPlace(int number, ParkingPlaceRequest parkingPlaceRequest) {
         if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("No such parking place");
+            throw new NotFoundException("No such parking place");
         }
         if (parkingPlaceRepository.findByNumber(parkingPlaceRequest.getNumber()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("This parking place is already exist");
+            throw new ErrorException("This parking place is already exist");
         }
         ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(number).get();
         parkingPlace.setNumber(parkingPlaceRequest.getNumber());
@@ -95,34 +93,32 @@ public class ParkingPlaceService {
             return ResponseEntity.status(HttpStatus.CREATED)
                     .body("Parking place is updated successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Parking place isn't updated");
+            throw new ErrorException("Failed to update parking place");
         }
     }
 
     public ResponseEntity<String> deleteParkingPlace(int number) {
         if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
+            throw new NotFoundException("No such parking place");
         }
         ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(number).get();
         try {
             parkingPlaceRepository.delete(parkingPlace);
             return ResponseEntity.status(HttpStatus.OK).body(parkingPlace.toString());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Parking place isn't deleted");
+            throw new ErrorException("Failed to delete parking place");
         }
     }
 
     public ResponseEntity<String> getParkingPlace(int number) {
+        if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
+            throw new NotFoundException("No such parking place");
+        }
         try {
-            if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
-
-            }
             ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(number).get();
             return ResponseEntity.status(HttpStatus.OK).body(parkingPlace.toString());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Failed to get parking place");
         }
     }
 
@@ -130,10 +126,10 @@ public class ParkingPlaceService {
                                                   int parkingPlaceNumber,
                                                   CardRequest cardRequest) {
         if (parkingPlaceRepository.findByNumber(parkingPlaceNumber).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
+            throw new NotFoundException("No such parking place");
         }
         if (carRepository.findCarByNumber(carNumber).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
+            throw new NotFoundException("No such car");
         }
 
             Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
@@ -198,7 +194,7 @@ public class ParkingPlaceService {
     public ResponseEntity<BookingRecord> deleteBookingRecord(UUID registrationNumber) {
         Optional<BookingRecord> deletedBookingRecord = bookingRecordRepository.findByRegistrationNumber(registrationNumber);
         if (deletedBookingRecord.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new NotFoundException("No such booking record");
         }
 
         try {
@@ -207,18 +203,18 @@ public class ParkingPlaceService {
             bookingRecordRepository.deleteByRegistrationNumber(registrationNumber);
             return ResponseEntity.status(HttpStatus.OK).body(bookingRecord);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Failed to delete booking record");
         }
     }
 
     public ResponseEntity<Set<BookingRecord>> getParkingPlacesBookingRecords(int number) {
         if (parkingPlaceRepository.findByNumber(number).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new NotFoundException("No such parking place");
         }
         try {
             return ResponseEntity.status(HttpStatus.OK).body(parkingPlaceRepository.findByNumber(number).get().getBookingRecords());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Failed to get parking place's booking records");
         }
     }
 }

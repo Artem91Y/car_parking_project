@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.dtos.CancellationPaymentException;
+import com.example.demo.dtos.NotFoundException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
@@ -155,18 +156,15 @@ public class ParkingPlaceServiceTest {
     @Test
     public void TestGetParkingPlaceNegativeNoParkingPlace() {
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.empty());
-        ResponseEntity<String> response = parkingPlaceService.getParkingPlace(1);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("No such parking place");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> parkingPlaceService.getParkingPlace(1), "Failed to get parking place");
     }
 
     @Test
     public void TestGetParkingPlacePositive() {
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         ResponseEntity<String> response = parkingPlaceService.getParkingPlace(1);
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.OK)
-                .body(new ParkingPlace(1L, 1, null, 200).toString());
+                .body(parkingPlace.toString());
         assertEquals(response, expected);
     }
 
@@ -195,9 +193,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest());
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such parking place");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "No such parking place");
     }
 
     @Test
@@ -210,9 +206,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest());
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "No such car");
     }
 
     @Test
@@ -283,9 +277,8 @@ public class ParkingPlaceServiceTest {
         UUID registrationNumber = UUID.randomUUID();
         when(bookingRecordRepository.findByRegistrationNumber(registrationNumber)).thenReturn(Optional.empty());
         when(bookingRecordRepository.findByRegistrationNumber(registrationNumber)).thenReturn(Optional.empty());
-        ResponseEntity<BookingRecord> response = parkingPlaceService.deleteBookingRecord(registrationNumber);
-        ResponseEntity<BookingRecord> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> parkingPlaceService.deleteBookingRecord(registrationNumber), "No such booking record");
+
     }
 
     @Test
@@ -301,8 +294,6 @@ public class ParkingPlaceServiceTest {
     @Test
     public void TestGetParkingPlacesBookingRecordsNegativeNoParkingPlace() {
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.empty());
-        ResponseEntity<Set<BookingRecord>> response = parkingPlaceService.getParkingPlacesBookingRecords(1);
-        ResponseEntity<Set<BookingRecord>> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> parkingPlaceService.getParkingPlacesBookingRecords(1), "No such parking place");
     }
 }

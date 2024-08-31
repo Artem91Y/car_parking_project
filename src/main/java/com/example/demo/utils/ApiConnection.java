@@ -1,9 +1,6 @@
 package com.example.demo.utils;
 
-import com.example.demo.dtos.ApiKassaConnectionException;
-import com.example.demo.dtos.CancellationPaymentException;
-import com.example.demo.dtos.CaptureFailedException;
-import com.example.demo.dtos.FailRefundPaymentException;
+import com.example.demo.dtos.*;
 import com.example.demo.utils.models.Amount;
 import com.example.demo.utils.models.PaymentRequest;
 import com.example.demo.utils.models.RefundDto;
@@ -22,17 +19,11 @@ import java.util.UUID;
 @Component
 public class ApiConnection {
 
-
-    private URL baseUrl;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
+    private final URL baseUrl;
+    private final ObjectMapper objectMapper;
     private final String secretKey = "test_5O4maTCzMLnqNnYz6iSZZHKm5McLYamIEAlT9jXIECI";
     private final String shopID = "417160";
-
-    private final OkHttpClient okHttpClient = new OkHttpClient();
-
+    private final OkHttpClient okHttpClient;
 
     {
         try {
@@ -42,15 +33,19 @@ public class ApiConnection {
         }
     }
 
-    public UUID createPayment(PaymentRequest paymentRequest) throws CaptureFailedException, CancellationPaymentException, ApiKassaConnectionException {
+    public ApiConnection(ObjectMapper objectMapper, OkHttpClient okHttpClient) {
+        this.objectMapper = objectMapper;
+        this.okHttpClient = okHttpClient;
+    }
 
+    public UUID createPayment(PaymentRequest paymentRequest) throws CaptureFailedException, CancellationPaymentException, ApiKassaConnectionException {
         System.out.println(paymentRequest);
         Response response;
         String json;
         try {
             json = objectMapper.writeValueAsString(paymentRequest);
         } catch (JsonProcessingException e) {
-            return null;
+            throw new ErrorException("Bad payment request");
         }
         System.out.println(json);
         Request request = new Request.Builder()
@@ -83,29 +78,22 @@ public class ApiConnection {
     }
 
     private UUID validation(Response response) throws CancellationPaymentException, CaptureFailedException {
-        JsonNode node = null;
-        String response1 = null;
-        try {
-            response1 = response.body().string();
-            System.out.println(response1);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            node = objectMapper.readTree(response1);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        if (node.has("status") && node.get("status").asText().equals("canceled")) { // case 1
-            if (node.has("cancellation_details")) {
-                throw new CancellationPaymentException(String.valueOf(node.get("cancellation_details")));
-            }
-        }
-        if (node.has("type") && node.get("type").asText().equals("error")){ // case two
-            throw new CancellationPaymentException(String.valueOf(node.get("description")));
-        }
         UUID paymentId = null;
+        JsonNode node;
+        String createResponse;
+        try {
+            createResponse = response.body().string();
+            System.out.println(createResponse);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            node = objectMapper.readTree(createResponse);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        checkCancelled(node);
+        checkError(node);
         if (node.has("id")) {
             paymentId = UUID.fromString(node.get("id").asText());
         }
@@ -117,13 +105,11 @@ public class ApiConnection {
         return paymentId;
     }
 
-    public  void refund(UUID paymentId, int refundPrice) throws FailRefundPaymentException {
-        ObjectMapper objectMapper1 = new ObjectMapper();
-        OkHttpClient okHttpClient = new OkHttpClient();
+    public void refund(UUID paymentId, int refundPrice) throws FailRefundPaymentException {
         Response response;
-        String json = null;
+        String json;
         try {
-            json = objectMapper1.writeValueAsString(new RefundDto(new Amount(refundPrice, "RUB"), paymentId));
+            json = objectMapper.writeValueAsString(new RefundDto(new Amount(refundPrice, "RUB"), paymentId));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -138,6 +124,18 @@ public class ApiConnection {
             System.out.println(response.body().string());
         } catch (IOException e) {
             throw new FailRefundPaymentException(e.getMessage());
+        }
+    }
+
+    public void checkCancelled(JsonNode node){
+        if (node.has("status") && node.get("status").asText().equals("canceled") && node.has("cancellation_details")) { // case 1
+            throw new CancellationPaymentException(String.valueOf(node.get("cancellation_details")));
+        }
+    }
+
+    public void checkError(JsonNode node){
+        if (node.has("type") && node.get("type").asText().equals("error")) { // case 2
+            throw new CancellationPaymentException(String.valueOf(node.get("description")));
         }
     }
 }

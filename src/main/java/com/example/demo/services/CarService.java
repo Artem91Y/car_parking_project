@@ -1,6 +1,8 @@
 package com.example.demo.services;
 
 import com.example.demo.dtos.CarRequest;
+import com.example.demo.dtos.ErrorException;
+import com.example.demo.dtos.NotFoundException;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
 import com.example.demo.repos.CarRepository;
@@ -26,10 +28,10 @@ public class CarService {
 
     public ResponseEntity<String> saveCar(CarRequest carRequest) {
         if (carRequest.getType() == null || carRequest.getNumber().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't full to be created");
+            throw new ErrorException("Car isn't full to be created");
         }
         if (carRepository.findCarByNumber(carRequest.getNumber()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This car already exists");
+            throw new ErrorException("This car already exists");
         }
         Car car = new Car();
         car.setType(carRequest.getType());
@@ -38,16 +40,16 @@ public class CarService {
             carRepository.save(car);
             return ResponseEntity.status(HttpStatus.CREATED).body("Car is created successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't created");
+            throw new ErrorException("Car isn't created");
         }
     }
 
     public ResponseEntity<String> updateCar(String number, CarRequest carRequest) {
         if (carRepository.findCarByNumber(number).isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
+            throw new NotFoundException("No such car");
         }
         if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carRepository.findCarByNumber(number).get(), personRepository)) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("It's not your car");
+            throw new ErrorException("It's not your car");
         }
         Car car = carRepository.findCarByNumber(number).get();
         if (!(carRequest.getNumber().isEmpty())) {
@@ -60,23 +62,23 @@ public class CarService {
             carRepository.save(car);
             return ResponseEntity.status(HttpStatus.CREATED).body("Car is updated successfully");
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't updated");
+            throw new ErrorException("Car isn't updated");
         }
     }
 
     public ResponseEntity<Car> deleteCar(String number) {
         Optional<Car> carOptional = carRepository.findCarByNumber(number);
         if (carOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new NotFoundException("No such car");
         }
         if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("It's not your car");
         }
         try {
             carRepository.delete(carOptional.get());
             return ResponseEntity.status(HttpStatus.OK).body(carOptional.get());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Car isn't deleted");
         }
     }
 
@@ -84,14 +86,14 @@ public class CarService {
         try {
             Optional<Car> carOptional = carRepository.findCarByNumber(number);
             if (carOptional.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                throw new NotFoundException("No such car");
             }
             if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                throw new ErrorException("It's not your car");
             }
             return ResponseEntity.status(HttpStatus.OK).body(carOptional.get());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Car isn't got");
         }
     }
 
@@ -99,14 +101,16 @@ public class CarService {
         try {
             Optional<Car> carOptional = carRepository.findCarByNumber(number);
             if (carOptional.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                throw new NotFoundException("No such car");
+
             }
             if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                throw new ErrorException("It's not your car");
             }
             return ResponseEntity.status(HttpStatus.OK).body(carOptional.get().getBookingRecords());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            throw new ErrorException("Car's booking record aren't got");
+
         }
     }
 

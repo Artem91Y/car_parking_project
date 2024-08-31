@@ -10,10 +10,13 @@ import org.springframework.web.context.request.WebRequest;
 @RestControllerAdvice
 public class CustomExceptionHandler {
     @ExceptionHandler({ErrorException.class})
-    public ResponseEntity<String> handleFailRefundPaymentException(Exception e, WebRequest webRequest) {
-        System.out.println("1");
+    public ResponseEntity<String> handleErrorException(Exception e, WebRequest webRequest) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     }
 
+    @ExceptionHandler({NotFoundException.class})
+    public ResponseEntity<String> handleNotFoundException(Exception e, WebRequest webRequest) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+    }
 
 }

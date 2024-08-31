@@ -1,6 +1,8 @@
 package com.example.demo.services;
 
 import com.example.demo.dtos.CarRequest;
+import com.example.demo.dtos.ErrorException;
+import com.example.demo.dtos.NotFoundException;
 import com.example.demo.models.BookingRecord;
 import com.example.demo.models.Car;
 import com.example.demo.models.Person;
@@ -8,6 +10,8 @@ import com.example.demo.models.enums.RulesBreaks;
 import com.example.demo.models.enums.TypeOfCar;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.PersonRepository;
+import org.aspectj.weaver.ast.Not;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -44,6 +48,16 @@ public class CarServiceTest {
     @Mock
     private Authentication authentication;
 
+    private Person person;
+
+    private Car car;
+
+    @BeforeEach
+    public void setUp() {
+        person = new Person(1L, "John", null, null, "smith");
+        car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null);
+    }
+
     public CarServiceTest() {
         MockitoAnnotations.initMocks(this);
     }
@@ -63,28 +77,24 @@ public class CarServiceTest {
     }
 
     @Test
-    public void TestSaveCarNegative() {
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, null, null)));
-        ResponseEntity<String> response = carService.saveCar(new CarRequest("u123ir", TypeOfCar.USUAL_CAR));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This car already exists");
-        assertEquals(response, expected);
+    public void TestSaveCarNegativeExistingCar() {
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
+        assertThrows(ErrorException.class, () -> carService.saveCar(new CarRequest("u123ir", null)), "This car already exists");
     }
 
     @Test
-    public void TestSaveCarNegativeNotFullObject() {
+    public void TestSaveCarNegativeNoCar() {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
-        ResponseEntity<String> response = carService.saveCar(new CarRequest("u123ir", null));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't full to be created");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> carService.saveCar(new CarRequest("u123ir", null)), "No such car");
+
     }
 
     @Test
     public void TestUpdateCarPositive() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
         ResponseEntity<String> response = carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
@@ -94,27 +104,25 @@ public class CarServiceTest {
 
     @Test
     public void TestUpdateCarNegativeDBFail() {
-        when(carRepository.findCarByNumber("u123ir")).thenThrow(new DataAccessException("DB error") {});
+        when(carRepository.findCarByNumber("u123ir")).thenThrow(new DataAccessException("DB error") {
+        });
         assertThrows(DataAccessException.class, () -> carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR)));
     }
 
     @Test
     public void TestUpdateCarNegativeNoCar() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = carService.updateCar("wrong number", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> carService.updateCar("wrong number", new CarRequest("u321ir", TypeOfCar.USUAL_CAR)), "No such car");
+
     }
 
     @Test
     public void TestUpdateCarNegativeWrongCar() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -123,12 +131,12 @@ public class CarServiceTest {
         when(authentication.getName()).thenReturn("smith");
         ResponseEntity<String> response = carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("It's not your car");
-        assertEquals(response, expected);
+        assertThrows(ErrorException.class, () -> carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR)), "It's not your car");
+
     }
 
     @Test
     public void TestDeleteCarPositive() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -142,21 +150,18 @@ public class CarServiceTest {
 
     @Test
     public void TestDeleteCarNegativeNoCar() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
-        ResponseEntity<Car> response = carService.deleteCar("u123ir");
-        ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> carService.deleteCar("u123ir"), "No such car");
+
     }
 
     @Test
     public void TestDeleteCarNegativeWrongPerson() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -170,7 +175,6 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarPositive() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -184,7 +188,6 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarNegativeNoCar() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -198,7 +201,6 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarNegativeWrongPerson() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -212,7 +214,6 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarsBookingRecordPositive() {
-        Person person = new Person(1L, "John", null, null, "smith");
         UUID registrationNumber = UUID.randomUUID();
         BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L), registrationNumber, 1600, UUID.randomUUID());
         Car car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, Set.of(bookingRecord));
@@ -229,7 +230,6 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarsBookingRecordNegativeNoCar() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -243,7 +243,6 @@ public class CarServiceTest {
 
     @Test
     public void TestGetCarsBookingRecordNegativeWrongPerson() {
-        Person person = new Person(1L, "John", null, null, "smith");
         UUID registrationNumber = UUID.randomUUID();
         BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L), registrationNumber, 1600, UUID.randomUUID());
         Car car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(2L, "Adam", null, null, "smith2"), Set.of(bookingRecord));
