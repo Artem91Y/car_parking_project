@@ -7,6 +7,7 @@ import com.example.demo.models.enums.RulesBreaks;
 import com.example.demo.repos.PersonRepository;
 import com.example.demo.services.ParkingPlaceService;
 import com.example.demo.services.PersonService;
+import com.example.demo.utils.ApiConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,9 @@ public class PersonControllerTest {
 
     @MockBean
     private ParkingPlaceService parkingPlaceService;
+
+    @MockBean
+    private ApiConnection apiConnection;
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})

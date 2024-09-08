@@ -6,8 +6,10 @@ import com.example.demo.models.enums.TypeOfCar;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.services.CarService;
 import com.example.demo.services.ParkingPlaceService;
+import com.example.demo.utils.ApiConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,6 +42,9 @@ public class CarControllerTest {
 
     @MockBean
     private ParkingPlaceService parkingPlaceService;
+
+    @MockBean
+    private ApiConnection apiConnection;
 
     @Test
     @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})

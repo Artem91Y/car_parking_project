@@ -52,10 +52,13 @@ public class CarServiceTest {
 
     private Car car;
 
+    public CarRequest carRequest;
+
     @BeforeEach
     public void setUp() {
         person = new Person(1L, "John", null, null, "smith");
         car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null);
+        carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
     }
 
     public CarServiceTest() {
@@ -65,7 +68,7 @@ public class CarServiceTest {
     @Test
     public void TestSaveCarPositive() {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
-        ResponseEntity<String> response = carService.saveCar(new CarRequest("u123ir", TypeOfCar.USUAL_CAR));
+        ResponseEntity<String> response = carService.saveCar(carRequest);
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED).body("Car is created successfully");
         assertEquals(response, expected);
     }
@@ -73,19 +76,19 @@ public class CarServiceTest {
     @Test
     public void TestSaveCarNegativeDBFail() {
         when(carRepository.findCarByNumber("u123ir")).thenThrow(new DataAccessException("DB error") {});
-        assertThrows(DataAccessException.class, () -> carService.saveCar(new CarRequest("u123ir", TypeOfCar.USUAL_CAR)));
+        assertThrows(DataAccessException.class, () -> carService.saveCar(carRequest));
     }
 
     @Test
     public void TestSaveCarNegativeExistingCar() {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
-        assertThrows(ErrorException.class, () -> carService.saveCar(new CarRequest("u123ir", null)), "This car already exists");
+        assertThrows(ErrorException.class, () -> carService.saveCar(carRequest), "This car already exists");
     }
 
     @Test
     public void TestSaveCarNegativeNoCar() {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
-        assertThrows(NotFoundException.class, () -> carService.saveCar(new CarRequest("u123ir", null)), "No such car");
+        assertThrows(NotFoundException.class, () -> carService.saveCar(carRequest), "No such car");
 
     }
 
@@ -97,7 +100,7 @@ public class CarServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
+        ResponseEntity<String> response = carService.updateCar("u123ir", carRequest);
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.CREATED).body("Car is updated successfully");
         assertEquals(response, expected);
     }
@@ -106,7 +109,7 @@ public class CarServiceTest {
     public void TestUpdateCarNegativeDBFail() {
         when(carRepository.findCarByNumber("u123ir")).thenThrow(new DataAccessException("DB error") {
         });
-        assertThrows(DataAccessException.class, () -> carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR)));
+        assertThrows(DataAccessException.class, () -> carService.updateCar("u123ir", carRequest));
     }
 
     @Test
@@ -117,7 +120,7 @@ public class CarServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        assertThrows(NotFoundException.class, () -> carService.updateCar("wrong number", new CarRequest("u321ir", TypeOfCar.USUAL_CAR)), "No such car");
+        assertThrows(NotFoundException.class, () -> carService.updateCar("wrong number", carRequest), "No such car");
 
     }
 
@@ -126,11 +129,9 @@ public class CarServiceTest {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
-        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(new Person(1L, "Adam", List.of(RulesBreaks.WRONG_PARKING), null, "smith")));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
+        when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("It's not your car");
         assertThrows(ErrorException.class, () -> carService.updateCar("u123ir", new CarRequest("u321ir", TypeOfCar.USUAL_CAR)), "It's not your car");
 
     }
@@ -142,9 +143,9 @@ public class CarServiceTest {
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         ResponseEntity<Car> response = carService.deleteCar("u123ir");
-        ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.OK).body(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null));
+        ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.OK).body(car);
         assertEquals(response, expected);
     }
 
@@ -167,10 +168,11 @@ public class CarServiceTest {
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Adam", null, null, "smith"), null)));
+        car.setPerson(person);
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         ResponseEntity<Car> response = carService.deleteCar("u123ir");
         ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        assertEquals(response, expected);
+        assertEquals(expected, response);
     }
 
     @Test
@@ -180,9 +182,9 @@ public class CarServiceTest {
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         ResponseEntity<Car> response = carService.getCar("u123ir");
-        ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.OK).body(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null));
+        ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.OK).body(car);
         assertEquals(response, expected);
     }
 
@@ -206,7 +208,8 @@ public class CarServiceTest {
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(1L, "Adam", null, null, "smith"), null)));
+        car.setPerson(person);
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         ResponseEntity<Car> response = carService.getCar("u123ir");
         ResponseEntity<Car> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         assertEquals(response, expected);
@@ -216,7 +219,7 @@ public class CarServiceTest {
     public void TestGetCarsBookingRecordPositive() {
         UUID registrationNumber = UUID.randomUUID();
         BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L), registrationNumber, 1600, UUID.randomUUID());
-        Car car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, Set.of(bookingRecord));
+        car.setBookingRecords(Set.of(bookingRecord));
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
@@ -245,7 +248,8 @@ public class CarServiceTest {
     public void TestGetCarsBookingRecordNegativeWrongPerson() {
         UUID registrationNumber = UUID.randomUUID();
         BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.now(), LocalDateTime.now().plusHours(8L), registrationNumber, 1600, UUID.randomUUID());
-        Car car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, new Person(2L, "Adam", null, null, "smith2"), Set.of(bookingRecord));
+        car.setBookingRecords(Set.of(bookingRecord));
+        car.setPerson(person);
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);

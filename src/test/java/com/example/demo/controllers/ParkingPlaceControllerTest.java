@@ -6,6 +6,7 @@ import com.example.demo.models.ParkingPlace;
 import com.example.demo.models.Person;
 import com.example.demo.repos.ParkingPlaceRepository;
 import com.example.demo.services.ParkingPlaceService;
+import com.example.demo.utils.ApiConnection;
 import com.example.demo.utils.models.CardRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,9 @@ public class ParkingPlaceControllerTest {
 
     @MockBean
     private ParkingPlaceRepository parkingPlaceRepository;
+
+    @MockBean
+    private ApiConnection apiConnection;
 
     @Test
     public void TestSaveParkingPlacePositive() throws Exception {

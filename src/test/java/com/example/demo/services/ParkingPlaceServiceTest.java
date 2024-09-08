@@ -61,9 +61,15 @@ public class ParkingPlaceServiceTest {
 
     private ParkingPlaceRequest parkingPlaceRequest;
 
+    private Person person;
+
+    private Car car;
+
     @BeforeEach
     void init() {
         parkingPlaceRequest = new ParkingPlaceRequest(1, 200);
+        person = new Person(1L, "John", null, null, "smith");
+        car = new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null);
         parkingPlace = new ParkingPlace(1L, 1, Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), UUID.randomUUID(), 0, UUID.randomUUID())), 200);
     }
 
@@ -170,12 +176,11 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestBuyParkingPlacePositive() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
         ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest());
@@ -185,12 +190,11 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestBuyParkingPlaceNegativeNoParkingPlace() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.empty());
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
         assertThrows(NotFoundException.class, () -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "No such parking place");
@@ -198,9 +202,8 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestBuyParkingPlaceNegativeNoCar() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
@@ -211,12 +214,11 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestBuyParkingPlaceNegativePastTime() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
         assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("2021-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "You gave past time");
@@ -224,13 +226,12 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestBuyParkingPlaceNegativeNoMoney() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
         when(apiConnection.createPayment(any(PaymentRequest.class))).thenThrow(new CancellationPaymentException("You haven't enough money"));
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
         assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest("5555555555554600", 2399, "01")), "You haven't enough money");
@@ -238,12 +239,11 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestBuyParkingPlaceNegativeWrongTime() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, null, 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
         assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("wrong format", "2024-09-05 09:00", "u123ir", 1, new CardRequest()), "Incorrect format of dates");
@@ -251,12 +251,11 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestBuyParkingPlaceNegativeBookedTime() {
-        Person person = new Person(1L, "John", null, null, "smith");
         SecurityContext securityContext = mock(SecurityContext.class);
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, Set.of(new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), UUID.randomUUID(), 0, UUID.randomUUID())), 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
-        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(new Car(1L, "u123ir", TypeOfCar.USUAL_CAR, person, null)));
+        when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
         assertThrows(CancellationPaymentException.class, ()-> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "This time is already booked");
@@ -283,11 +282,9 @@ public class ParkingPlaceServiceTest {
 
     @Test
     public void TestGetParkingPlacesBookingRecordsPositive() {
-        UUID registrationNumber = UUID.randomUUID();
-        BookingRecord bookingRecord = new BookingRecord(1L, null, null, LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(9, 0)), LocalDateTime.of(LocalDate.of(2024, 9, 5), LocalTime.of(15, 0)), registrationNumber, 1200, UUID.randomUUID());
-        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(new ParkingPlace(1L, 1, Set.of(bookingRecord), 200)));
+        when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
         ResponseEntity<Set<BookingRecord>> response = parkingPlaceService.getParkingPlacesBookingRecords(1);
-        ResponseEntity<Set<BookingRecord>> expected = ResponseEntity.status(HttpStatus.OK).body(Set.of(bookingRecord));
+        ResponseEntity<Set<BookingRecord>> expected = ResponseEntity.status(HttpStatus.OK).body(parkingPlace.getBookingRecords());
         assertEquals(response, expected);
     }
 

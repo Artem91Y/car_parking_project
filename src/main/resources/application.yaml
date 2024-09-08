@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: ${URL_DB}
+    url: ${URL_DB:jdbc:mysql://localhost:3306/car_parking_project?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=true&autoReconnect=true}
     username: ${USER_DB}
     password: ${PASS_DB}
 

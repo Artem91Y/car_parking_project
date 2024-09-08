@@ -23,7 +23,7 @@ public class ApiConnection {
     private final ObjectMapper objectMapper;
     private final String secretKey = "test_5O4maTCzMLnqNnYz6iSZZHKm5McLYamIEAlT9jXIECI";
     private final String shopID = "417160";
-    private final OkHttpClient okHttpClient;
+    private final OkHttpClient okHttpClient = new OkHttpClient();
 
     {
         try {
@@ -33,12 +33,12 @@ public class ApiConnection {
         }
     }
 
-    public ApiConnection(ObjectMapper objectMapper, OkHttpClient okHttpClient) {
+    public ApiConnection(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.okHttpClient = okHttpClient;
     }
 
     public UUID createPayment(PaymentRequest paymentRequest) throws CaptureFailedException, CancellationPaymentException, ApiKassaConnectionException {
+
         System.out.println(paymentRequest);
         Response response;
         String json;
