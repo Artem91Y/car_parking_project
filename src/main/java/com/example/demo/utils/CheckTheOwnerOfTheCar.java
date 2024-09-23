@@ -6,6 +6,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 public class CheckTheOwnerOfTheCar {
     public static Boolean CheckTheOwnerOfTheCarByContext(Car car, PersonRepository personRepository) {
-        return car.getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get());
+        try {
+            return car.getPerson().equals(personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get());
+        } catch (Exception e){
+            return false;
+        }
     }
 }

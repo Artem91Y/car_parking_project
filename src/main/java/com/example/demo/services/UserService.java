@@ -59,11 +59,7 @@ public class UserService implements UserDetailsService {
 
     public User findUserById(Long userId) {
         Optional<User> user = userRepository.findById(userId);
-        if (user.get() == null) {
-            return new User();
-        } else {
-            return user.get();
-        }
+        return user.orElseGet(User::new);
     }
 
     public List<User> allUsers() {

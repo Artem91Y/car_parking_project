@@ -49,7 +49,7 @@ public class PersonControllerTest {
     private ApiConnection apiConnection;
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSavePersonPositive() throws Exception {
         PersonRequest personRequest = new PersonRequest("Nicolas", List.of("u123ir"));
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.CREATED).body("Person is created successfully");
@@ -61,7 +61,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSavePersonNegativeSecondAccount() throws Exception {
         PersonRequest personRequest = new PersonRequest("Nicolas", List.of("u123ir"));
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("You can not create one more account");
@@ -73,7 +73,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSavePersonNegativeFailDB() throws Exception {
         PersonRequest personRequest = new PersonRequest("Nicolas", List.of("u123ir"));
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Person isn't created");
@@ -85,7 +85,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSavePersonNegativeNoCar() throws Exception {
         PersonRequest personRequest = new PersonRequest("Nicolas", List.of("u123ir"));
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
@@ -97,7 +97,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSavePersonNegativeNotFullObject() throws Exception {
         PersonRequest personRequest = new PersonRequest(null, null);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -110,7 +110,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestUpdatePersonPositive() throws Exception {
         PersonRequest personRequest = new PersonRequest("Nicolas", List.of("u123ir"));
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.CREATED).body("Person is updated successfully");
@@ -122,7 +122,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestUpdatePersonNegativeDBFail() throws Exception {
         PersonRequest personRequest = new PersonRequest("Nicolas", List.of("u123ir"));
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Person isn't updated");
@@ -134,7 +134,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestUpdatePersonNegativeNotFoundObject() throws Exception {
         PersonRequest personRequest = new PersonRequest("Nicolas", List.of("u123ir"));
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -159,7 +159,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "smith", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "smith", authorities = {"ADMIN"})
     public void TestDeletePersonNegativeWrongName() throws Exception {
         ResponseEntity<Person> response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         when(personService.deletePerson()).thenReturn(response);
@@ -180,7 +180,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "smith", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "smith", authorities = {"ADMIN"})
     public void TestGetPersonNegativeWrongName() throws Exception {
         ResponseEntity<Person> response = ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         when(personService.getPerson()).thenReturn(response);
@@ -190,7 +190,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestMakeAccountPositive() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.CREATED).body("Account is created successfully");
         when(personService.addRulesBreaks(anyString(), anyList())).thenReturn(response);
@@ -202,7 +202,7 @@ public class PersonControllerTest {
 
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestMakeAccountNegativeNoPerson() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
         when(personService.addRulesBreaks(anyString(), anyList())).thenReturn(response);
@@ -213,7 +213,7 @@ public class PersonControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestMakeAccountNegativeDBFail() throws Exception {
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Account isn't created");
         when(personService.addRulesBreaks(anyString(), anyList())).thenReturn(response);

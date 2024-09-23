@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+@WithMockUser(username = "admin", authorities = {"ADMIN"})
 public class ParkingPlaceControllerTest {
     @Autowired
     private MockMvc mockMvc;

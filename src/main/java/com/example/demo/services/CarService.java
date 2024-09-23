@@ -8,7 +8,6 @@ import com.example.demo.models.Car;
 import com.example.demo.repos.CarRepository;
 import com.example.demo.repos.PersonRepository;
 import com.example.demo.utils.CheckTheOwnerOfTheCar;
-import org.hibernate.annotations.Cascade;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -85,13 +84,10 @@ public class CarService {
         }
     }
 
-    public ResponseEntity<Car> getCar(String number){
-        long startTime = System.nanoTime();
-        Optional<Car> carOptional = findByNumber(number);
-        long endTime = System.nanoTime();
-        System.out.println((endTime - startTime) / 1000000);
+    @Cacheable(value = "cars")
+    public ResponseEntity<Car> getCar(String number) {
+        Optional<Car> carOptional = carRepository.findCarByNumber(number);
         if (carOptional.isEmpty()) {
-            System.out.println("here");
             throw new NotFoundException("No such car");
         }
         if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
@@ -99,32 +95,17 @@ public class CarService {
         }
         return ResponseEntity.status(HttpStatus.OK).body(carOptional.get());
     }
-    @Cacheable(value = "cars", key = "#number")
-    public Optional<Car> findByNumber(String number){
-        try {
-            Thread.sleep(3000);
-        }catch (Exception e){
-
-        }
-        return carRepository.findCarByNumber(number);
-    }
 
     public ResponseEntity<Set<BookingRecord>> getCarsBookingRecords(String number) {
-        try {
-            Optional<Car> carOptional = carRepository.findCarByNumber(number);
-            if (carOptional.isEmpty()) {
-                throw new NotFoundException("No such car");
-
-            }
-            if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
-                throw new ErrorException("It's not your car");
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(carOptional.get().getBookingRecords());
-        } catch (Exception e) {
-            throw new ErrorException("Car's booking record aren't got");
+        Optional<Car> carOptional = carRepository.findCarByNumber(number);
+        if (carOptional.isEmpty()) {
+            throw new NotFoundException("No such car");
 
         }
+        if (!CheckTheOwnerOfTheCar.CheckTheOwnerOfTheCarByContext(carOptional.get(), personRepository)) {
+            throw new ErrorException("It's not your car");
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(carOptional.get().getBookingRecords());
     }
-
 
 }

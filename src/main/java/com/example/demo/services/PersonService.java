@@ -27,7 +27,7 @@ public class PersonService {
     }
 
     public ResponseEntity<String> savePerson(PersonRequest personRequest) {
-        if (personRequest.getFullName().isEmpty() || SecurityContextHolder.getContext().getAuthentication().getName().isEmpty() || personRequest.getNumbers().isEmpty()) {
+        if (personRequest.getFullName() == null || personRequest.getNumbers() == null || personRequest.getFullName().isEmpty() || SecurityContextHolder.getContext().getAuthentication().getName().isEmpty() || personRequest.getNumbers().isEmpty()) {
             throw new ErrorException("Person isn't full to be created");
         }
         if (personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).isPresent()) {

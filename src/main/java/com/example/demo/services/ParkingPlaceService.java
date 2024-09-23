@@ -18,7 +18,6 @@ import com.example.demo.utils.CountDatesDifference;
 import com.example.demo.utils.CountMoney;
 import com.example.demo.utils.models.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,6 +28,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -132,63 +132,59 @@ public class ParkingPlaceService {
             throw new NotFoundException("No such car");
         }
 
-            Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
-            Car car = carRepository.findCarByNumber(carNumber).get();
-            ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(parkingPlaceNumber).get();
-            BookingRecord bookingRecord = new BookingRecord();
-            bookingRecord.setCar(car);
-            bookingRecord.setParkingPlace(parkingPlace);
-            bookingRecord.setRegistrationNumber(UUID.randomUUID());
-            Duration dateDiff = null;
-            LocalDateTime startTime2;
-            LocalDateTime endTime2;
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-            try {
-                startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter); // validate startTime
-                endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
-            } catch (DateTimeParseException e){
-                throw new CancellationPaymentException("Incorrect format of dates");
-            }
-            try {
-                dateDiff = CountDatesDifference.countDateDiffFromStrings(startTime2, endTime2);
-            } catch (DateTimeException e) {
-                throw new CancellationPaymentException(e.getMessage());
-            }
-            if (CheckIfTimeIsBooked.checkIfTimeIsBooked(parkingPlace, startTime2, endTime2)) {
-                throw new CancellationPaymentException("This time is already booked");
-            }
-            bookingRecord.setEndTime(endTime2);
-            bookingRecord.setStartTime(startTime2);
-            Set<BookingRecord> bookingRecordSetParkingPlace = parkingPlace.getBookingRecords();
-            if (bookingRecordSetParkingPlace != null) {
-                bookingRecordSetParkingPlace.add(bookingRecord);
-            } else {
-                bookingRecordSetParkingPlace = Set.of(bookingRecord);
-            }
-            Set<BookingRecord> bookingRecordSetCar = car.getBookingRecords();
-            if (bookingRecordSetCar != null) {
-                bookingRecordSetCar.add(bookingRecord);
-            } else {
-                bookingRecordSetCar = Set.of(bookingRecord);
-            }
-            int price = CountMoney.countPrice(dateDiff, parkingPlace, bookingRecord);
+        Person person = personRepository.findByUsername(SecurityContextHolder.getContext().getAuthentication().getName()).get();
+        Car car = carRepository.findCarByNumber(carNumber).get();
+        ParkingPlace parkingPlace = parkingPlaceRepository.findByNumber(parkingPlaceNumber).get();
+        BookingRecord bookingRecord = new BookingRecord();
+        bookingRecord.setCar(car);
+        bookingRecord.setParkingPlace(parkingPlace);
+        bookingRecord.setRegistrationNumber(UUID.randomUUID());
+        Duration dateDiff;
+        LocalDateTime startTime2;
+        LocalDateTime endTime2;
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        try {
+            startTime2 = LocalDateTime.parse(startTime, dateTimeFormatter); // validate startTime
+            endTime2 = LocalDateTime.parse(endTime, dateTimeFormatter);
+        } catch (DateTimeParseException e) {
+            throw new CancellationPaymentException("Incorrect format of dates");
+        }
+        try {
+            dateDiff = CountDatesDifference.countDateDiffFromStrings(startTime2, endTime2);
+        } catch (DateTimeException e) {
+            throw new CancellationPaymentException(e.getMessage());
+        }
+        if (CheckIfTimeIsBooked.checkIfTimeIsBooked(parkingPlace, startTime2, endTime2)) {
+            throw new CancellationPaymentException("This time is already booked");
+        }
+        bookingRecord.setEndTime(endTime2);
+        bookingRecord.setStartTime(startTime2);
+        Set<BookingRecord> bookingRecordSetParkingPlace = new HashSet<>(parkingPlace.getBookingRecords());
+        bookingRecordSetParkingPlace.add(bookingRecord);
+        Set<BookingRecord> bookingRecordSetCar = car.getBookingRecords();
+        if (bookingRecordSetCar != null) {
+            bookingRecordSetCar.add(bookingRecord);
+        } else {
+            bookingRecordSetCar = new HashSet<>(Set.of(bookingRecord));
+        }
+        int price = CountMoney.countPrice(dateDiff, parkingPlace, bookingRecord);
 
-            PaymentRequest paymentRequest = PaymentRequest
-                    .builder()
-                    .amount(new Amount(price, "RUB"))
-                    .refundable(true)
-                    .confirmation(new ConfirmationRequest())
-                    .paymentMethod(new PaymentRequestMethod(cardRequest))
-                    .build();
-            System.out.println(paymentRequest);
-            UUID paymentId = apiConnection.createPayment(paymentRequest);
-            bookingRecord.setPaymentId(paymentId);
-            car.setBookingRecords(bookingRecordSetCar);
-            parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
-            personRepository.save(person);
-            carRepository.save(car);
-            bookingRecordRepository.save(bookingRecord);
-            return ResponseEntity.status(HttpStatus.OK).body("Parking place is bought successfully");
+        PaymentRequest paymentRequest = PaymentRequest
+                .builder()
+                .amount(new Amount(price, "RUB"))
+                .refundable(true)
+                .confirmation(new ConfirmationRequest())
+                .paymentMethod(new PaymentRequestMethod(cardRequest))
+                .build();
+        UUID paymentId = apiConnection.createPayment(paymentRequest);
+        bookingRecord.setPaymentId(paymentId);
+        car.setBookingRecords(bookingRecordSetCar);
+        parkingPlace.setBookingRecords(bookingRecordSetParkingPlace);
+        parkingPlaceRepository.save(parkingPlace);
+        personRepository.save(person);
+        carRepository.save(car);
+        bookingRecordRepository.save(bookingRecord);
+        return ResponseEntity.status(HttpStatus.OK).body("Parking place is bought successfully");
     }
 
     public ResponseEntity<BookingRecord> deleteBookingRecord(UUID registrationNumber) {

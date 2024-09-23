@@ -1,5 +1,7 @@
 package com.example.demo.services;
 
+import com.example.demo.dtos.ErrorException;
+import com.example.demo.dtos.NotFoundException;
 import com.example.demo.dtos.PersonRequest;
 import com.example.demo.models.Car;
 import com.example.demo.models.Person;
@@ -81,10 +83,7 @@ public class PersonServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = personService.savePerson(new PersonRequest("", List.of("u123ir")));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("Person isn't full to be created");
-        assertEquals(response, expected);
+        assertThrows(ErrorException.class, () -> personService.savePerson(new PersonRequest(null, null)), "Person isn't full to be created");
     }
 
     @Test
@@ -95,10 +94,7 @@ public class PersonServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(person));
-        ResponseEntity<String> response = personService.savePerson(personRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("You can not create one more account");
-        assertEquals(response, expected);
+        assertThrows(ErrorException.class, () -> personService.savePerson(personRequest), "You can not create one more account");
     }
 
     @Test
@@ -119,10 +115,7 @@ public class PersonServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
         when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = personService.savePerson(personRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("No such car");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> personService.savePerson(personRequest), "No such car");
     }
 
 
@@ -148,10 +141,7 @@ public class PersonServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-        ResponseEntity<String> response = personService.updatePerson(personRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("No such person");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> personService.updatePerson(personRequest), "No such person");
     }
 
     @Test
@@ -162,10 +152,7 @@ public class PersonServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.empty());
         when(authentication.getName()).thenReturn("smith");
         when(personRepository.findByUsername(anyString())).thenReturn(Optional.of(person));
-        ResponseEntity<String> response = personService.updatePerson(personRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("No such car");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> personService.updatePerson(personRequest), "No such car");
     }
 
     @Test
@@ -193,16 +180,13 @@ public class PersonServiceTest {
 
 
     @Test
-    public void TestDeletePersonNegativeFail() {
+    public void TestDeletePersonNegativeFailDB() {
         SecurityContext securityContext = mock(SecurityContext.class);
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<Person> response = personService.deletePerson();
-        ResponseEntity<Person> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .build();
-        assertEquals(response, expected);
+        assertThrows(ErrorException.class, () -> personService.deletePerson(), "Person isn't deleted");
     }
 
     @Test
@@ -225,10 +209,8 @@ public class PersonServiceTest {
         SecurityContextHolder.setContext(securityContext);
         when(personRepository.findByUsername("smith")).thenReturn(Optional.empty());
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<Person> response = personService.getPerson();
-        ResponseEntity<Person> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .build();
-        assertEquals(response, expected);
+        assertThrows(ErrorException.class, () -> personService.getPerson(), "Person isn't got");
+
     }
 
     @Test
@@ -242,9 +224,7 @@ public class PersonServiceTest {
     @Test
     public void TestAddRulesBreaksNegativeNoPerson() {
         when(personRepository.findByUsername(anyString())).thenReturn(Optional.empty());
-        ResponseEntity<String> response = personService.addRulesBreaks("smith", List.of(RulesBreaks.WRONG_PARKING));
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such person");
-        assertEquals(expected, response);
+        assertThrows(NotFoundException.class, () -> personService.addRulesBreaks("smith",  List.of(RulesBreaks.WRONG_PARKING)), "No such person");
     }
 
     @Test

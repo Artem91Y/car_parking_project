@@ -9,7 +9,6 @@ import com.example.demo.services.ParkingPlaceService;
 import com.example.demo.utils.ApiConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -47,7 +46,7 @@ public class CarControllerTest {
     private ApiConnection apiConnection;
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSaveCarPositive() throws Exception {
         CarRequest carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.CREATED).body("Car is created successfully");
@@ -59,7 +58,7 @@ public class CarControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSaveCarNegativeExistingCar() throws Exception {
         CarRequest carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("This car already exists");
@@ -71,7 +70,7 @@ public class CarControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestSaveCarNegativeNotFullCar() throws Exception {
         CarRequest carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't full to be created");
@@ -83,7 +82,7 @@ public class CarControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestUpdateCarPositive() throws Exception {
         CarRequest carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.CREATED).body("Car is updated successfully");
@@ -96,7 +95,7 @@ public class CarControllerTest {
 
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestUpdateCarNegativeWrongCar() throws Exception {
         CarRequest carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("It's not your car");
@@ -108,7 +107,7 @@ public class CarControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestUpdateCarNegativeNoCar() throws Exception {
         CarRequest carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such car");
@@ -120,7 +119,7 @@ public class CarControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "admin", password = "password", authorities = {"ADMIN"})
+    @WithMockUser(username = "admin", authorities = {"ADMIN"})
     public void TestUpdateCarNegativeDBFail() throws Exception {
         CarRequest carRequest = new CarRequest("u123ir", TypeOfCar.USUAL_CAR);
         ResponseEntity<String> response = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Car isn't updated");

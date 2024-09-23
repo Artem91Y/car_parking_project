@@ -1,9 +1,7 @@
 package com.example.demo.controllers;
 
-import com.example.demo.dtos.CancellationPaymentException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
-import com.example.demo.models.ParkingPlace;
 import com.example.demo.services.ParkingPlaceService;
 import com.example.demo.utils.models.CardRequest;
 import org.springframework.http.ResponseEntity;

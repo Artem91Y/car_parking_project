@@ -1,6 +1,7 @@
 package com.example.demo.services;
 
 import com.example.demo.dtos.CancellationPaymentException;
+import com.example.demo.dtos.ErrorException;
 import com.example.demo.dtos.NotFoundException;
 import com.example.demo.dtos.ParkingPlaceRequest;
 import com.example.demo.models.BookingRecord;
@@ -90,15 +91,14 @@ public class ParkingPlaceServiceTest {
     @Test
     public void TestSaveParkingPlaceNegativeDuplicateParkingPlace() {
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
-        ResponseEntity<String> response = parkingPlaceService.saveParkingPlace(parkingPlaceRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("This parking place is already exist");
-        assertEquals(response, expected);
+        assertThrows(ErrorException.class, () -> parkingPlaceService.saveParkingPlace(parkingPlaceRequest), "This parking place is already exist");
+
     }
 
     @Test
     public void TestSaveParkingPlaceNegativeDBFail() {
-        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new DataAccessException("DB error") {});
+        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new DataAccessException("DB error") {
+        });
         assertThrows(DataAccessException.class, () -> parkingPlaceService.saveParkingPlace(parkingPlaceRequest));
     }
 
@@ -114,24 +114,19 @@ public class ParkingPlaceServiceTest {
     @Test
     public void TestUpdateParkingPlaceNegativeExistingParkingPlace() {
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.of(parkingPlace));
-        ResponseEntity<String> response = parkingPlaceService.updateParkingPlace(1, parkingPlaceRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("This parking place is already exist");
-        assertEquals(response, expected);
+        assertThrows(ErrorException.class, () -> parkingPlaceService.updateParkingPlace(1, parkingPlaceRequest), "This parking place is already exist");
     }
 
     @Test
     public void TestUpdateParkingPlaceNegativeNoParkingPlace() {
         when(parkingPlaceRepository.findByNumber(2)).thenReturn(Optional.empty());
-        ResponseEntity<String> response = parkingPlaceService.updateParkingPlace(2, parkingPlaceRequest);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("No such parking place");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> parkingPlaceService.updateParkingPlace(2, parkingPlaceRequest), "No such parking place");
     }
 
     @Test
     public void TestUpdateParkingPlaceNegativeDBFail() {
-        when(parkingPlaceRepository.findByNumber(2)).thenThrow(new DataAccessException("DB error") {});
+        when(parkingPlaceRepository.findByNumber(2)).thenThrow(new DataAccessException("DB error") {
+        });
         assertThrows(DataAccessException.class, () -> parkingPlaceService.updateParkingPlace(2, parkingPlaceRequest));
     }
 
@@ -147,15 +142,14 @@ public class ParkingPlaceServiceTest {
     @Test
     public void TestDeleteParkingPlaceNegativeNoParkingPlace() {
         when(parkingPlaceRepository.findByNumber(1)).thenReturn(Optional.empty());
-        ResponseEntity<String> response = parkingPlaceService.deleteParkingPlace(1);
-        ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("No such parking place");
-        assertEquals(response, expected);
+        assertThrows(NotFoundException.class, () -> parkingPlaceService.deleteParkingPlace(1), "Failed to delete parking place");
+
     }
 
     @Test
     public void TestDeleteParkingPlaceNegativeDBFail() {
-        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new DataAccessException("DB error") {});
+        when(parkingPlaceRepository.findByNumber(1)).thenThrow(new DataAccessException("DB error") {
+        });
         assertThrows(DataAccessException.class, () -> parkingPlaceService.deleteParkingPlace(1));
     }
 
@@ -183,7 +177,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest());
+        ResponseEntity<String> response = parkingPlaceService.buyParkingPlace("3024-09-05 09:00", "3024-09-05 15:00", "u123ir", 1, new CardRequest());
         ResponseEntity<String> expected = ResponseEntity.status(HttpStatus.OK).body("Parking place is bought successfully");
         assertEquals(response, expected);
     }
@@ -221,7 +215,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("2021-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "You gave past time");
+        assertThrows(CancellationPaymentException.class, () -> parkingPlaceService.buyParkingPlace("2021-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "You gave past time");
     }
 
     @Test
@@ -234,7 +228,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest("5555555555554600", 2399, "01")), "You haven't enough money");
+        assertThrows(CancellationPaymentException.class, () -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest("5555555555554600", 2399, "01")), "You haven't enough money");
     }
 
     @Test
@@ -246,7 +240,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        assertThrows(CancellationPaymentException.class,() -> parkingPlaceService.buyParkingPlace("wrong format", "2024-09-05 09:00", "u123ir", 1, new CardRequest()), "Incorrect format of dates");
+        assertThrows(CancellationPaymentException.class, () -> parkingPlaceService.buyParkingPlace("wrong format", "2024-09-05 09:00", "u123ir", 1, new CardRequest()), "Incorrect format of dates");
     }
 
     @Test
@@ -258,7 +252,7 @@ public class ParkingPlaceServiceTest {
         when(carRepository.findCarByNumber("u123ir")).thenReturn(Optional.of(car));
         when(personRepository.findByUsername("smith")).thenReturn(Optional.of(person));
         when(authentication.getName()).thenReturn("smith");
-        assertThrows(CancellationPaymentException.class, ()-> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "This time is already booked");
+        assertThrows(CancellationPaymentException.class, () -> parkingPlaceService.buyParkingPlace("2024-09-05 09:00", "2024-09-05 15:00", "u123ir", 1, new CardRequest()), "This time is already booked");
     }
 
     @Test

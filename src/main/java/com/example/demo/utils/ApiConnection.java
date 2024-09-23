@@ -8,7 +8,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.okhttp.*;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -38,8 +37,6 @@ public class ApiConnection {
     }
 
     public UUID createPayment(PaymentRequest paymentRequest) throws CaptureFailedException, CancellationPaymentException, ApiKassaConnectionException {
-
-        System.out.println(paymentRequest);
         Response response;
         String json;
         try {
@@ -47,7 +44,6 @@ public class ApiConnection {
         } catch (JsonProcessingException e) {
             throw new ErrorException("Bad payment request");
         }
-        System.out.println(json);
         Request request = new Request.Builder()
                 .post(RequestBody.create(MediaType.parse("APPLICATION/JSON"), json))
                 .url(baseUrl + "payments")
@@ -64,8 +60,6 @@ public class ApiConnection {
     }
 
     private void capturePayment(UUID id) throws IOException {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        Response response;
         Request request = new Request.Builder()
                 .method("POST", RequestBody.create(MediaType.parse("APPLICATION/JSON"), "{}"))
                 .header("Content-Length", "0")
@@ -73,22 +67,20 @@ public class ApiConnection {
                 .addHeader("Authorization", Credentials.basic(shopID, secretKey))
                 .addHeader("Idempotence-Key", UUID.randomUUID().toString())
                 .build();
-        response = okHttpClient.newCall(request).execute();
-        System.out.println(response.body().string());
+        okHttpClient.newCall(request).execute();
     }
 
     private UUID validation(Response response) throws CancellationPaymentException, CaptureFailedException {
         UUID paymentId = null;
         JsonNode node;
-        String createResponse;
-        try {
-            createResponse = response.body().string();
-            System.out.println(createResponse);
+        String finalResponse;
+        try (ResponseBody createResponse = response.body()){
+            finalResponse = createResponse.string();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
         try {
-            node = objectMapper.readTree(createResponse);
+            node = objectMapper.readTree(finalResponse);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -121,7 +113,6 @@ public class ApiConnection {
                 .build();
         try {
             response = okHttpClient.newCall(request).execute();
-            System.out.println(response.body().string());
         } catch (IOException e) {
             throw new FailRefundPaymentException(e.getMessage());
         }
